@@ -1,0 +1,22 @@
+{
+  "version": "1.2",
+  "dbname": "filtered_mutations_gyra_aa_seq.faa",
+  "dbtype": "Protein",
+  "db-version": 5,
+  "description": "/home/iamke/ciprofloxacin/extract_no_mut_IDs/gyra/filtered_mutations_gyra_aa_seq.faa",
+  "number-of-letters": 236123,
+  "number-of-sequences": 2361,
+  "last-updated": "2022-10-26T15:37:00",
+  "number-of-volumes": 1,
+  "bytes-total": 778895,
+  "bytes-to-cache": 257565,
+  "files": [
+    "filtered_mutations_gyra_aa_seq.faa.pdb",
+    "filtered_mutations_gyra_aa_seq.faa.phr",
+    "filtered_mutations_gyra_aa_seq.faa.pin",
+    "filtered_mutations_gyra_aa_seq.faa.pot",
+    "filtered_mutations_gyra_aa_seq.faa.psq",
+    "filtered_mutations_gyra_aa_seq.faa.ptf",
+    "filtered_mutations_gyra_aa_seq.faa.pto"
+  ]
+}

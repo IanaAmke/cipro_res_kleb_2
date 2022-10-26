@@ -1,0 +1,22 @@
+{
+  "version": "1.2",
+  "dbname": "filtered_mutations_parc_aa_seq.faa",
+  "dbtype": "Protein",
+  "db-version": 5,
+  "description": "/home/iamke/ciprofloxacin/extract_no_mut_IDs/parc/filtered_mutations_parc_aa_seq.faa",
+  "number-of-letters": 290410,
+  "number-of-sequences": 1181,
+  "last-updated": "2022-10-25T18:38:00",
+  "number-of-volumes": 1,
+  "bytes-total": 571082,
+  "bytes-to-cache": 301232,
+  "files": [
+    "filtered_mutations_parc_aa_seq.faa.pdb",
+    "filtered_mutations_parc_aa_seq.faa.phr",
+    "filtered_mutations_parc_aa_seq.faa.pin",
+    "filtered_mutations_parc_aa_seq.faa.pot",
+    "filtered_mutations_parc_aa_seq.faa.psq",
+    "filtered_mutations_parc_aa_seq.faa.ptf",
+    "filtered_mutations_parc_aa_seq.faa.pto"
+  ]
+}

@@ -1,0 +1,203 @@
+RID: NJMSNCSU114	
+Job Title: gyra ref protein seq 				
+Program: BLASTP 
+Query: gyra ref protein seq ID: lcl|Query_25466(amino acid) Length: 120
+			            
+Subject #1:SRR5385756_gyra_146_2 ID: lcl|Query_25468 Length: 162
+Subject #2:uk_18B32C_gyra_NODE_9_length_176866_cov_2.06808_ID_7815_2 ID: lcl|Query_25469 Length: 162
+Subject #3:uk_8A23D_gyra_NODE_6_length_271882_cov_3.64421_ID_8466_2 ID: lcl|Query_25470 Length: 162
+Subject #4:uk_8B10J_gyra_NODE_1_length_915178_cov_2.75426_ID_5528_2 ID: lcl|Query_25471 Length: 162
+Subject #5:uk_19A13I_gyra_NODE_3_length_350049_cov_3.33728_ID_5559_2 ID: lcl|Query_25472 Length: 162
+Subject #6:uk_19C33D_gyra_NODE_4_length_316726_cov_3.58041_ID_7410_2 ID: lcl|Query_25473 Length: 162
+Subject #7:uk_8B35L_gyra_NODE_2_length_523041_cov_3.77677_ID_4838_2 ID: lcl|Query_25474 Length: 162
+Subject #8:uk_8C11D_gyra_NODE_1_length_710112_cov_3.4814_ID_5807_2 ID: lcl|Query_25475 Length: 162
+Subject #9:uk_17A1L_gyra_NODE_8_length_239336_cov_2.66633_ID_6420_2 ID: lcl|Query_25476 Length: 162
+Subject #10:KP_NORM_BLD_2011_75132_gyra_6_1 ID: lcl|Query_25477 Length: 125
+	                    			
+	
+Sequences producing significant alignments:
+                                                                  Scientific      Common                     Max    Total Query   E   Per.   Acc.                        
+Description                                                       Name            Name            Taxid      Score  Score cover Value Ident  Len        Accession        
+SRR5385756_gyra_146_2                                                                             0          195    195   79%   2e-69 98.95  162        Query_25468      
+uk_17A1L_gyra_NODE_8_length_239336_cov_2.66633_ID_6420_2                                          0          194    194   79%   5e-69 98.95  162        Query_25476      
+uk_19A13I_gyra_NODE_3_length_350049_cov_3.33728_ID_5559_2                                         0          194    194   79%   5e-69 98.95  162        Query_25472      
+uk_8A23D_gyra_NODE_6_length_271882_cov_3.64421_ID_8466_2                                          0          194    194   79%   5e-69 98.95  162        Query_25470      
+uk_18B32C_gyra_NODE_9_length_176866_cov_2.06808_ID_7815_2                                         0          192    192   79%   2e-68 97.89  162        Query_25469      
+uk_8B35L_gyra_NODE_2_length_523041_cov_3.77677_ID_4838_2                                          0          192    192   79%   2e-68 97.89  162        Query_25474      
+uk_8C11D_gyra_NODE_1_length_710112_cov_3.4814_ID_5807_2                                           0          192    192   79%   3e-68 97.89  162        Query_25475      
+uk_8B10J_gyra_NODE_1_length_915178_cov_2.75426_ID_5528_2                                          0          192    192   79%   3e-68 97.89  162        Query_25471      
+uk_19C33D_gyra_NODE_4_length_316726_cov_3.58041_ID_7410_2                                         0          191    191   79%   6e-68 97.89  162        Query_25473      
+KP_NORM_BLD_2011_75132_gyra_6_1                                                                   0          85.9   85.9  47%   1e-26 72.41  125        Query_25477      
+
+Alignments:
+
+>SRR5385756_gyra_146_2
+Sequence ID: Query_25468 Length: 162
+Range 1: 1 to 95
+
+Score:195 bits(496), Expect:2e-69, 
+Method:Compositional matrix adjust., 
+Identities:94/95(99%), Positives:95/95(100%), Gaps:0/95(0%)
+
+Query  26   MSVIVGRALPDVRDGLKPVHRRVLYAMNVLGNDWNKAYKKSARVVGDVIGKYHPHGDSAV  85
+Sbjct  1    ............................................................  60
+
+Query  86   YDTIVRMAQPFSLRYMLVDGQGNFGSIDGDSAAAM  120
+Sbjct  61   .................................S.  95
+
+
+
+
+>uk_17A1L_gyra_NODE_8_length_239336_cov_2.66633_ID_6420_2
+Sequence ID: Query_25476 Length: 162
+Range 1: 1 to 95
+
+Score:194 bits(493), Expect:5e-69, 
+Method:Compositional matrix adjust., 
+Identities:94/95(99%), Positives:94/95(98%), Gaps:0/95(0%)
+
+Query  26   MSVIVGRALPDVRDGLKPVHRRVLYAMNVLGNDWNKAYKKSARVVGDVIGKYHPHGDSAV  85
+Sbjct  1    .........................................................I..  60
+
+Query  86   YDTIVRMAQPFSLRYMLVDGQGNFGSIDGDSAAAM  120
+Sbjct  61   ...................................  95
+
+
+
+
+>uk_19A13I_gyra_NODE_3_length_350049_cov_3.33728_ID_5559_2
+Sequence ID: Query_25472 Length: 162
+Range 1: 1 to 95
+
+Score:194 bits(493), Expect:5e-69, 
+Method:Compositional matrix adjust., 
+Identities:94/95(99%), Positives:94/95(98%), Gaps:0/95(0%)
+
+Query  26   MSVIVGRALPDVRDGLKPVHRRVLYAMNVLGNDWNKAYKKSARVVGDVIGKYHPHGDSAV  85
+Sbjct  1    .........................................................I..  60
+
+Query  86   YDTIVRMAQPFSLRYMLVDGQGNFGSIDGDSAAAM  120
+Sbjct  61   ...................................  95
+
+
+
+
+>uk_8A23D_gyra_NODE_6_length_271882_cov_3.64421_ID_8466_2
+Sequence ID: Query_25470 Length: 162
+Range 1: 1 to 95
+
+Score:194 bits(493), Expect:5e-69, 
+Method:Compositional matrix adjust., 
+Identities:94/95(99%), Positives:94/95(98%), Gaps:0/95(0%)
+
+Query  26   MSVIVGRALPDVRDGLKPVHRRVLYAMNVLGNDWNKAYKKSARVVGDVIGKYHPHGDSAV  85
+Sbjct  1    .........................................................I..  60
+
+Query  86   YDTIVRMAQPFSLRYMLVDGQGNFGSIDGDSAAAM  120
+Sbjct  61   ...................................  95
+
+
+
+
+>uk_18B32C_gyra_NODE_9_length_176866_cov_2.06808_ID_7815_2
+Sequence ID: Query_25469 Length: 162
+Range 1: 1 to 95
+
+Score:192 bits(489), Expect:2e-68, 
+Method:Compositional matrix adjust., 
+Identities:93/95(98%), Positives:94/95(98%), Gaps:0/95(0%)
+
+Query  26   MSVIVGRALPDVRDGLKPVHRRVLYAMNVLGNDWNKAYKKSARVVGDVIGKYHPHGDSAV  85
+Sbjct  1    .........................................................I..  60
+
+Query  86   YDTIVRMAQPFSLRYMLVDGQGNFGSIDGDSAAAM  120
+Sbjct  61   .N.................................  95
+
+
+
+
+>uk_8B35L_gyra_NODE_2_length_523041_cov_3.77677_ID_4838_2
+Sequence ID: Query_25474 Length: 162
+Range 1: 1 to 95
+
+Score:192 bits(489), Expect:2e-68, 
+Method:Compositional matrix adjust., 
+Identities:93/95(98%), Positives:94/95(98%), Gaps:0/95(0%)
+
+Query  26   MSVIVGRALPDVRDGLKPVHRRVLYAMNVLGNDWNKAYKKSARVVGDVIGKYHPHGDSAV  85
+Sbjct  1    .........................................................F..  60
+
+Query  86   YDTIVRMAQPFSLRYMLVDGQGNFGSIDGDSAAAM  120
+Sbjct  61   .N.................................  95
+
+
+
+
+>uk_8C11D_gyra_NODE_1_length_710112_cov_3.4814_ID_5807_2
+Sequence ID: Query_25475 Length: 162
+Range 1: 1 to 95
+
+Score:192 bits(488), Expect:3e-68, 
+Method:Compositional matrix adjust., 
+Identities:93/95(98%), Positives:94/95(98%), Gaps:0/95(0%)
+
+Query  26   MSVIVGRALPDVRDGLKPVHRRVLYAMNVLGNDWNKAYKKSARVVGDVIGKYHPHGDSAV  85
+Sbjct  1    .........................................................Y..  60
+
+Query  86   YDTIVRMAQPFSLRYMLVDGQGNFGSIDGDSAAAM  120
+Sbjct  61   .N.................................  95
+
+
+
+
+>uk_8B10J_gyra_NODE_1_length_915178_cov_2.75426_ID_5528_2
+Sequence ID: Query_25471 Length: 162
+Range 1: 1 to 95
+
+Score:192 bits(488), Expect:3e-68, 
+Method:Compositional matrix adjust., 
+Identities:93/95(98%), Positives:94/95(98%), Gaps:0/95(0%)
+
+Query  26   MSVIVGRALPDVRDGLKPVHRRVLYAMNVLGNDWNKAYKKSARVVGDVIGKYHPHGDSAV  85
+Sbjct  1    .........................................................Y..  60
+
+Query  86   YDTIVRMAQPFSLRYMLVDGQGNFGSIDGDSAAAM  120
+Sbjct  61   .N.................................  95
+
+
+
+
+>uk_19C33D_gyra_NODE_4_length_316726_cov_3.58041_ID_7410_2
+Sequence ID: Query_25473 Length: 162
+Range 1: 1 to 95
+
+Score:191 bits(486), Expect:6e-68, 
+Method:Compositional matrix adjust., 
+Identities:93/95(98%), Positives:93/95(97%), Gaps:0/95(0%)
+
+Query  26   MSVIVGRALPDVRDGLKPVHRRVLYAMNVLGNDWNKAYKKSARVVGDVIGKYHPHGDSAV  85
+Sbjct  1    .........................................................F..  60
+
+Query  86   YDTIVRMAQPFSLRYMLVDGQGNFGSIDGDSAAAM  120
+Sbjct  61   .A.................................  95
+
+
+
+
+>KP_NORM_BLD_2011_75132_gyra_6_1
+Sequence ID: Query_25477 Length: 125
+Range 1: 1 to 58
+
+Score:85.9 bits(211), Expect:1e-26, 
+Method:Compositional matrix adjust., 
+Identities:42/58(72%), Positives:47/58(81%), Gaps:1/58(1%)
+
+Query  64   KKSARVVGDVIGKYHPHGDSAVYDTIVRMAQPFSLRYMLVDGQGNFGSI-DGDSAAAM  120
+Sbjct  1    .....T....L..........C.EAM.L......Y..P.......W.APD.PK.F...  58
+
+
+
+
+		
+
+
