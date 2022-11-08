@@ -67,6 +67,7 @@ library(here)
 library(tidyverse)
 library(scales)
 library(ggupset)
+library(RColorBrewer)
 ```
 
 # Load antibiogram data and filter for ciprofloxacin
@@ -98,7 +99,7 @@ cipro_antibiogram <- antibiogram %>%
 #write_delim(cipro_antibiogram, file = "cipro_antibiogram.tsv", delim = "\t")
 
 # combine antibiogram with mutations not in kleborate data file
-no_mut_kleborate <- read.delim(file = "cipro_res_kleb/mutations_not_in_kleborate.tsv",
+no_mut_kleborate <- read.delim(file = "cipro_res_kleb/data_files/mutations_not_in_kleborate.tsv",
                                header = TRUE, sep = "\t")
 
 cipro_antibiogram <- cipro_antibiogram %>%
@@ -120,16 +121,6 @@ cipro_antibiogram %>%
   geom_text(aes(label = ..count..), stat = "count", nudge_y = 60) +
   labs(title = "Total sample count per dataset", y = "Total sample count", fill = "Lab typing method") +
   theme(axis.title.x = element_blank(), axis.text.x = element_text(angle = 45, hjust = 1))
-```
-
-## AST testing standards summary
-```{r fig.align='center'}
-cipro_antibiogram %>%
-  group_by(Testing.standard) %>%
-  ggplot(aes(Testing.standard, fill = Testing.standard.year.or.version)) +
-  geom_bar(alpha = 0.7) +
-  labs(title = "Total sample count per testing standard", x = "Testing standard", y = "Total sample count", 
-       fill = "Testing standard\n(year or version)")
 ```
 
 ## Total sample counts vs measurements for different lab typing methods
@@ -263,6 +254,12 @@ top_35_st_res <- cipro_antibiogram %>%
 
 top_35_st_res
 
+# Classic palette BuPu, with 4 colors
+colour_palette <- brewer.pal(4, "Blues") 
+
+# Add more colors to this palette :
+colour_palette <- colorRampPalette(colour_palette)(35)
+
 top_35_st_res %>%
   ggplot(aes(y = ST, x = sample_count, fill = ST, label = sample_count)) +
   geom_bar(stat = "identity", position = "dodge") +
@@ -270,15 +267,14 @@ top_35_st_res %>%
   scale_y_discrete(limits = rev) +
   ggtitle("Top STs with fluoroquinolone resistance") +
   labs(x = "Sample count") +
+  scale_fill_manual(values = colour_palette) +
   theme_minimal() +
   theme(legend.position = "none",
-  axis.text = element_text(size = 11)) +
-  annotate("text", x = -10, y = 36, label = "") +
-  annotate("text", x = 10, y = 36, label = "") +
+  axis.text = element_text(size = 10)) +
   coord_cartesian(clip = "off")
 ```
 
-### STs associated with specific fluoroquinolone resistance mechanisms
+### Resistant STs associated with specific fluoroquinolone resistance mechanisms
 ```{r fig.width=20, fig.height=10, fig.align='center'}
 st_res_mech <- cipro_res_mech %>%
   filter(Resistance.phenotype == "resistant") %>%
@@ -295,13 +291,13 @@ st_res_mech
 st_res_mech %>%
   ggplot(aes(ST, n, fill = res_mech)) +
   geom_bar(stat = "identity") +
-  labs(title = "Top STs associated with specific fluoroquinolone resistance mechanisms", y = "Count", fill = "Fluoroquinolone resistance\nmechanisms") +
+  labs(title = "Fluoroquinolone resistance mechanisms employed by the top resistant STs", y = "Count", fill = "Fluoroquinolone resistance\nmechanisms") +
   # put legend in one column
   guides(fill = guide_legend(ncol = 1))
 ```
 
 ## Resistant strains displaying no fluoroquinolone resistance mechanisms
-```{r}
+```{r fig.width=10, fig.height=10}
 no_res_mech <- cipro_antibiogram %>%
   filter(Flq_mutations == "-", Flq_acquired == "-", Omp_mutations == "-") %>%
   filter(Resistance.phenotype == "resistant")
@@ -314,6 +310,13 @@ st_no_res_mech <- no_res_mech %>%
   mutate(ST = factor(ST, levels = ST, ordered = TRUE))
 
 st_no_res_mech
+
+st_no_res_mech %>%
+  filter(sample_count != 1) %>%
+  ggplot(aes(ST, sample_count)) +
+  geom_bar(stat = "identity", fill = "blue", alpha = 0.7) +
+  labs(title = "Resistant STs with no fluoroquinolone resistance mechanisms", y = "Count") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
 ## Susceptible strains displaying fluoroquinolone resistance mechanisms
@@ -335,13 +338,13 @@ st_sus_res_mech
 st_sus_res_mech %>%
   ggplot(aes(ST, n, fill = res_mech)) +
   geom_bar(stat = "identity") +
-  labs(title = "Top susceptible STs associated with specific fluoroquinolone resistance mechanisms", y = "Count", fill = "Fluoroquinolone resistance\nmechanisms") +
+  labs(title = "Fluoroquinolone resistance mechanisms employed by the top susceptible STs", y = "Count", fill = "Fluoroquinolone resistance\nmechanisms") +
   # put legend in one column
   guides(fill = guide_legend(ncol = 1)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
-### UpSet plots
+### UpSet plots 
 #### Disk diffusion
 ```{r warning=FALSE, fig.width=10, fig.height=10, fig.align='center'}
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
