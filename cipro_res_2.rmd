@@ -281,7 +281,7 @@ top_35_st_res %>%
 
 ### Resistant STs associated with specific fluoroquinolone resistance mechanisms
 ```{r fig.width=20, fig.height=10, fig.align='center'}
-st_res_mech_2 <- cipro_antibiogram %>%
+st_res_mech <- cipro_antibiogram %>%
   mutate(Flq_mutations = case_when(Flq_mutations == "-" ~ "no_mut",
                                    TRUE ~ Flq_mutations), 
          Flq_acquired = case_when(Flq_acquired == "-" ~ "no_acq",
@@ -295,7 +295,7 @@ st_res_mech_2 <- cipro_antibiogram %>%
   as.data.frame() %>%
   count(ST, res_mech, sort = TRUE) 
 
-st_res_mech_2
+st_res_mech
 
 # Classic palette Paired, with 12 colors
 colour_palette_2 <- brewer.pal(12, "Paired") 
@@ -303,7 +303,7 @@ colour_palette_2 <- brewer.pal(12, "Paired")
 # Add more colors to this palette :
 colour_palette_2 <- colorRampPalette(colour_palette_2)(18)
 
-st_res_mech_2 %>%
+st_res_mech %>%
   filter(n >= 15) %>%
   mutate(ST = factor(ST, levels = unique(ST))) %>%
   ggplot(aes(ST, n, fill = res_mech)) +
