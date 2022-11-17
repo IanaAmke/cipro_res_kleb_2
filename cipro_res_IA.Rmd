@@ -185,21 +185,26 @@ cipro_res_mech <- cipro_res_mech %>%
   drop_na(Resistance.mech.type) %>%
   select(-name) 
 
-# now have one row per strain/mechanism combination
-view(cipro_res_mech)
-
-# KH: now label all OmpK35 truncations as such, e.g. "OmpK35-21%" -> "OmpK35-trunc"
+# now label all OmpK35 truncations as such, e.g. "OmpK35-21%" -> "OmpK35-trunc"
 # as these all reflect the same mechanism (i.e. truncation/loss of the porin)
 cipro_res_mech <- cipro_res_mech %>%
   mutate(Resistance.mech.type = replace(Resistance.mech.type, grepl("OmpK35-", Resistance.mech.type), "OmpK35-trunc")) %>%
   mutate(Resistance.mech.type = replace(Resistance.mech.type, grepl("OmpK36-", Resistance.mech.type), "OmpK36-trunc"))
 
+# explicitly label strains with wildtype QRDR (gyrA/parC) and wt Omp as such
+cipro_res_mech <- cipro_res_mech %>%
+  mutate(Resistance.mech.type = replace(Resistance.mech.type, Flq.resistance.mech=="Flq_mutations" & Resistance.mech.type=="-", "wt_QRDR")) %>%
+  mutate(Resistance.mech.type = replace(Resistance.mech.type, Flq.resistance.mech=="Omp_mutations" & Resistance.mech.type=="-", "wt_Omp")) %>%
+  mutate(Resistance.mech.type = replace(Resistance.mech.type, Flq.resistance.mech=="Flq_acquired" & Resistance.mech.type=="-", "no_acquired_genes"))
+
+view(cipro_res_mech)
 ```
 
 ## Summary bar plot of resistance mechanisms
 ```{r fig.width=20, fig.height=10}
 summ_res_mech <- cipro_res_mech %>%
-  filter(Resistance.mech.type != "-") %>%
+  filter(Resistance.mech.type != "wt_Omp" & Resistance.mech.type != "wt_QRDR" & 
+           Resistance.mech.type != "no_acquired_genes") %>%
   group_by(Flq.resistance.mech, Resistance.mech.type) %>%
   summarise(count = n()) 
 
@@ -221,6 +226,7 @@ summ_res_mech %>%
 ```{r warning=FALSE, message=FALSE}
 knitr::opts_chunk$set(echo = TRUE, cache = FALSE)
 p <- cipro_res_mech %>%
+  filter(!(Resistance.mech.type == "no_acquired_genes")) %>% # exclude these rows as not informative
   filter(Laboratory.Typing.Method == "MIC (broth dilution)") %>%
   upset_plot("Resistance.mech.type", "Laboratory.Typing.Method") +
   labs(title = "MIC (broth dilution) measurements") 
@@ -250,17 +256,19 @@ p
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, 
                       dpi = 300, cache = FALSE, attr.output = 'style="max-height: 300px;"')
 cipro_res_mech %>%
+  filter(!(Resistance.mech.type == "no_acquired_genes")) %>% # exclude these rows as not informative
   filter(Laboratory.Typing.Method == "MIC (agar dilution)") %>%
   upset_plot("Resistance.mech.type", "Laboratory.Typing.Method") +
   labs(title = "MIC (agar dilution) measurements") 
 ```
 
 ### Disk diffusion
-```{r warning=FALSE, fig.width=20, fig.height=8}
+```{r warning=FALSE, fig.width=20, fig.height=9}
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
                       dpi = 300, cache = FALSE, attr.output = 'style="max-height: 300px;"')
 
 cipro_res_mech %>%
+  filter(!(Resistance.mech.type == "no_acquired_genes")) %>% # exclude these rows as not informative
   filter(Laboratory.Typing.Method == "Disk diffusion") %>%
   upset_plot("Resistance.mech.type", "Laboratory.Typing.Method")
 ```
@@ -330,38 +338,40 @@ st_res_mech
 colour_palette_2 <- brewer.pal(12, "Paired") 
 
 # Add more colors to this palette :
-colour_palette_2 <- colorRampPalette(colour_palette_2)(26)
+colour_palette_2 <- colorRampPalette(colour_palette_2)(67)
 
 # bar plot showing resistance mechanism combination count
 st_res_mech %>%
-  filter(n >= 5) %>%
   mutate(ST = factor(ST, levels = unique(ST))) %>%
   ggplot(aes(ST, n, fill = res_mech)) +
   geom_bar(stat = "identity") +
   labs(title = "Fluoroquinolone resistance mechanisms employed by the top resistant STs", y = "Count", fill = "Fluoroquinolone resistance\nmechanisms") +
   scale_fill_manual(values = colour_palette_2) +
   # put legend in one column
-  guides(fill = guide_legend(ncol = 1))
-```
-```{r fig.width=20, fig.height=10}
+  guides(fill = guide_legend(ncol = 2))
+
 # bar plot showing %frequency of resistance mechanism combinations
 st_res_mech_freq <- st_mech %>%
   group_by(ST, Resistance.mech.type) %>%
   summarise(n = n()) %>%
   mutate(freq = n / sum(n)) %>%
-  mutate(ST = factor(ST, levels = unique(st_res_mech_freq$ST), ordered = TRUE))
+  mutate(ST = factor(ST, levels = unique(ST)))
+
+# Classic palette Paired, with 12 colors
+colour_palette_3 <- brewer.pal(12, "Paired") 
+
+# Add more colors to this palette :
+colour_palette_3 <- colorRampPalette(colour_palette_2)(67)
 
 st_res_mech_freq %>%
-  filter(n >= 5) %>%
   ggplot(aes(ST, freq, fill = Resistance.mech.type)) +
   geom_bar(stat = "identity") +
   labs(title = "Fluoroquinolone resistance mechanisms employed by the top resistant STs", y = "% Frequency", fill = "Fluoroquinolone resistance\nmechanisms") +
-  scale_fill_manual(values = colour_palette_2) +
+  scale_fill_manual(values = colour_palette_3) +
   scale_y_continuous(labels = scales::percent) + 
   # put legend in one column
-  guides(fill = guide_legend(ncol = 1))
+  guides(fill = guide_legend(ncol = 2))
 ```
-
 
 ## Resistant strains displaying no fluoroquinolone resistance mechanisms
 ```{r fig.width=10, fig.height=10}
@@ -412,7 +422,8 @@ st_sus_res_mech %>%
 ```{r}
 sus_res_mech <- cipro_res_mech %>%
   filter(Resistance.phenotype == "susceptible") %>%
-  filter(Resistance.mech.type != "-")
+  filter(Resistance.mech.type != "wt_Omp" & Resistance.mech.type != "wt_QRDR" & 
+           Resistance.mech.type != "no_acquired_genes")
 ```
 
 #### Disk diffusion
@@ -444,4 +455,3 @@ sus_res_mech %>%
   upset_plot("Resistance.mech.type", "Laboratory.Typing.Method") +
   labs(title = "MIC (agar dilution) measurements") 
 ```
-
