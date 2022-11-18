@@ -29,6 +29,7 @@ upset_plot <- function(df, x, y) {
   if (grepl('MIC.*$', df[y])) {
     df %>%
       group_by(strain, Measurement) %>% 
+      # !! sym() allows one to pass a column name as an argument
       summarize(res_mech_list = list(!! sym(x))) %>%
       ggplot(aes(res_mech_list, Measurement)) + geom_violin() + geom_count() + 
       # EUCAST cut-off of 0.5 mg/L
@@ -397,7 +398,7 @@ st_no_res_mech %>%
 ```
 
 ## Susceptible strains displaying fluoroquinolone resistance mechanisms
-```{r fig.width=20, fig.height=10, fig.align='center'}
+```{r fig.align='center'}
 st_sus_res_mech <- st_mech %>%
   filter(Resistance.phenotype == "susceptible") %>%
   group_by(ST) %>%
@@ -427,7 +428,7 @@ sus_res_mech <- cipro_res_mech %>%
 ```
 
 #### Disk diffusion
-```{r warning=FALSE, fig.width=10, fig.height=10, fig.align='center'}
+```{r warning=FALSE, fig.height=10, fig.align='center'}
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
                       dpi = 300, cache = FALSE, attr.output = 'style="max-height: 300px;"')
 
@@ -455,3 +456,21 @@ sus_res_mech %>%
   upset_plot("Resistance.mech.type", "Laboratory.Typing.Method") +
   labs(title = "MIC (agar dilution) measurements") 
 ```
+
+# Statistical analysis
+## Two-proportions z-test
+```{r}
+# calculate frequencies of different resistance mechanisms for the different phenotypes
+mech_freq <- cipro_res_mech %>%
+  filter(Resistance.mech.type != "wt_Omp", Resistance.mech.type != "wt_QRDR", 
+         Resistance.mech.type != "no_acquired_genes") %>%
+  group_by(Resistance.mech.type, Resistance.phenotype) %>%
+  summarise(n = n()) %>%
+  mutate(freq = n / sum(n)) %>%
+  ungroup() %>%
+  group_by(Resistance.mech.type) %>%
+  mutate(total = sum(n))
+
+view(mech_freq)
+```
+
