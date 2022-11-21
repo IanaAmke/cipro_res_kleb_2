@@ -69,6 +69,7 @@ library(tidyverse)
 library(scales)
 library(ggupset)
 library(RColorBrewer)
+library(collapse)
 ```
 
 # Load antibiogram data and filter for ciprofloxacin
@@ -95,7 +96,7 @@ cipro_antibiogram <- antibiogram %>%
                                             "CLSI" & Measurement >= 26 ~ "susceptible",
                                           Laboratory.Typing.Method == "Disk diffusion" & Testing.standard == 
                                             "CLSI" & Measurement <= 21 ~ "resistant",
-                                          TRUE ~ "intermediate"))
+                                          TRUE ~ "resistant"))
 
 #write_delim(cipro_antibiogram, file = "cipro_antibiogram.tsv", delim = "\t")
 
@@ -356,7 +357,10 @@ st_res_mech_freq <- st_mech %>%
   group_by(ST, Resistance.mech.type) %>%
   summarise(n = n()) %>%
   mutate(freq = n / sum(n)) %>%
-  mutate(ST = factor(ST, levels = unique(ST)))
+  ungroup() %>%
+  group_by(ST) %>%
+  mutate(total = sum(n)) %>%
+  relocate(freq, .after = total)
 
 # Classic palette Paired, with 12 colors
 colour_palette_3 <- brewer.pal(12, "Paired") 
@@ -458,7 +462,7 @@ sus_res_mech %>%
 ```
 
 # Statistical analysis
-## Two-proportions z-test
+## Proportion test
 ```{r}
 # calculate frequencies of different resistance mechanisms for the different phenotypes
 mech_freq <- cipro_res_mech %>%
@@ -466,11 +470,27 @@ mech_freq <- cipro_res_mech %>%
          Resistance.mech.type != "no_acquired_genes") %>%
   group_by(Resistance.mech.type, Resistance.phenotype) %>%
   summarise(n = n()) %>%
-  mutate(freq = n / sum(n)) %>%
   ungroup() %>%
   group_by(Resistance.mech.type) %>%
-  mutate(total = sum(n))
+  pivot_wider(names_from = Resistance.phenotype, values_from = n) 
+
+# convert na values to 0
+mech_freq[is.na(mech_freq)] <- 0
+
+# find totals of different resistance mechanisms
+mech_freq <- mech_freq %>%
+  mutate(total = sum(c(resistant, susceptible)))
 
 view(mech_freq)
+
+# run prop.test() on each row
+prop_out <- dapply(slt(mech_freq, c(resistant, total)), MARGIN = 1, 
+       FUN = function(x) broom::tidy(prop.test(x[1], x[2])))
+
+# combine mech_freq and prop_out
+mech_freq_prop <- cbind(mech_freq, prop_out)
+
+mech_freq_prop
 ```
+
 
