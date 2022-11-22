@@ -187,11 +187,32 @@ cipro_res_mech <- cipro_res_mech %>%
   drop_na(Resistance.mech.type) %>%
   select(-name) 
 
+rare_res_qnr_genes <- c("qnrB7", "qnrE2", "qnrS2", "qnrVC1", "qnrVC6")
+
+
 # now label all OmpK35 truncations as such, e.g. "OmpK35-21%" -> "OmpK35-trunc"
 # as these all reflect the same mechanism (i.e. truncation/loss of the porin)
 cipro_res_mech <- cipro_res_mech %>%
   mutate(Resistance.mech.type = replace(Resistance.mech.type, grepl("OmpK35-", Resistance.mech.type), "OmpK35-trunc")) %>%
-  mutate(Resistance.mech.type = replace(Resistance.mech.type, grepl("OmpK36-", Resistance.mech.type), "OmpK36-trunc"))
+  mutate(Resistance.mech.type = replace(Resistance.mech.type, grepl("OmpK36-", Resistance.mech.type), "OmpK36-trunc")) %>%
+  # based on statistical analysis (chunk prop_test), combine QRDR mutations to have just 4 types (GyrA-83, GyrA-87, ParC-80, ParC-84)
+  # except GyrA-87H which is found in one strain and is sensitive
+  mutate(Resistance.mech.type = replace(Resistance.mech.type, startsWith(Resistance.mech.type, "GyrA-83"), "GyrA-83")) %>%
+  mutate(Resistance.mech.type = case_when(startsWith(Resistance.mech.type, "GyrA-87") & Resistance.mech.type != "GyrA-87H" ~ "GyrA-87",
+                                          TRUE ~ Resistance.mech.type)) %>%
+  mutate(Resistance.mech.type = replace(Resistance.mech.type, startsWith(Resistance.mech.type, "ParC-80"), "ParC-80")) %>%
+  mutate(Resistance.mech.type = replace(Resistance.mech.type, startsWith(Resistance.mech.type, "ParC-84"), "ParC-84")) %>%
+  # also combine the following acquired genes
+  mutate(Resistance.mech.type = replace(Resistance.mech.type, startsWith(Resistance.mech.type, "qepA2"), "qepA2")) %>%
+  mutate(Resistance.mech.type = replace(Resistance.mech.type, startsWith(Resistance.mech.type, "qnrA1"), "qnrA1")) %>%
+  mutate(Resistance.mech.type = replace(Resistance.mech.type, startsWith(Resistance.mech.type, "qnrB1"), "qnrB1")) %>%
+  mutate(Resistance.mech.type = replace(Resistance.mech.type, startsWith(Resistance.mech.type, "qnrB19"), "qnrB19")) %>%
+  mutate(Resistance.mech.type = replace(Resistance.mech.type, startsWith(Resistance.mech.type, "qnrB2"), "qnrB2")) %>%
+  mutate(Resistance.mech.type = replace(Resistance.mech.type, startsWith(Resistance.mech.type, "qnrS1"), "qnrS1")) %>%
+  mutate(Resistance.mech.type = replace(Resistance.mech.type, grepl(paste(rare_res_qnr_genes, collapse = "|"), Resistance.mech.type), "rare_res_qnr"))
+  
+#cipro_res_mech <- cipro_res_mech %>%
+#  mutate(Resistance.mech.type = replace(Resistance.mech.type, startsWith(Resistance.mech.type, "GyrA-87"), "GyrA-87"))
 
 # explicitly label strains with wildtype QRDR (gyrA/parC) and wt Omp as such
 cipro_res_mech <- cipro_res_mech %>%
@@ -247,14 +268,14 @@ p <- cipro_res_mech %>%
 </style>
 
 <div class="bigupsetplot">
-```{r echo=FALSE, fig.height=12, fig.width=55, warning=FALSE, cache=FALSE}
+```{r echo=FALSE, fig.height=12, fig.width=28, warning=FALSE, cache=FALSE}
 # this produces the plot with a special css class (scrollable figure)
 p
 ```
 </div>
 
 #### MIC (agar dilution)
-```{r warning=FALSE, fig.width=15, fig.height=8}
+```{r warning=FALSE, fig.width=10, fig.height=8, fig.align='center'}
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, 
                       dpi = 300, cache = FALSE, attr.output = 'style="max-height: 300px;"')
 cipro_res_mech %>%
@@ -265,7 +286,7 @@ cipro_res_mech %>%
 ```
 
 ### Disk diffusion
-```{r warning=FALSE, fig.width=20, fig.height=9}
+```{r warning=FALSE, fig.width=13, fig.height=9, fig.align='center'}
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
                       dpi = 300, cache = FALSE, attr.output = 'style="max-height: 300px;"')
 
@@ -379,7 +400,7 @@ st_res_mech_freq %>%
 ```
 
 ## Resistant strains displaying no fluoroquinolone resistance mechanisms
-```{r fig.width=10, fig.height=10}
+```{r fig.width=15, fig.height=8}
 no_res_mech <- cipro_antibiogram %>%
   filter(Flq_mutations == "-", Flq_acquired == "-", Omp_mutations == "-") %>%
   filter(Resistance.phenotype == "resistant")
@@ -463,11 +484,11 @@ sus_res_mech %>%
 
 # Statistical analysis
 ## Proportion test
-```{r}
+```{r prop_test}
 # calculate frequencies of different resistance mechanisms for the different phenotypes
+# including numbers for the wildtype groups for comparison to compare resistance frequency 
+# amongst strains with the determinant vs strains without
 mech_freq <- cipro_res_mech %>%
-  filter(Resistance.mech.type != "wt_Omp", Resistance.mech.type != "wt_QRDR", 
-         Resistance.mech.type != "no_acquired_genes") %>%
   group_by(Resistance.mech.type, Resistance.phenotype) %>%
   summarise(n = n()) %>%
   ungroup() %>%
@@ -481,16 +502,86 @@ mech_freq[is.na(mech_freq)] <- 0
 mech_freq <- mech_freq %>%
   mutate(total = sum(c(resistant, susceptible)))
 
-view(mech_freq)
 
-# run prop.test() on each row
-prop_out <- dapply(slt(mech_freq, c(resistant, total)), MARGIN = 1, 
-       FUN = function(x) broom::tidy(prop.test(x[1], x[2])))
+# compare each gyrA/parC SNP vs wildtype QRDR
+qrdr_wt <- mech_freq %>% filter(Resistance.mech.type == "wt_QRDR")
+qrdr_mut <- mech_freq %>% 
+  filter(startsWith(Resistance.mech.type, "GyrA") | startsWith(Resistance.mech.type, "ParC")) %>%
+  mutate(wt_res = qrdr_wt[2], wt_total=qrdr_wt[4]) # add columns with the wildtype counts for res & total
+  
+# run prop.test() to each row, comparing the resistant counts (x) with the total counts (n)
+qrdr_prop_out <- dapply(as.matrix(qrdr_mut), MARGIN = 1, 
+       FUN = function(y) broom::tidy(prop.test(x=c(as.numeric(y[2]), as.numeric(y[5])), n=c(as.numeric(y[4]), as.numeric(y[6])))))
 
-# combine mech_freq and prop_out
-mech_freq_prop <- cbind(mech_freq, prop_out)
+# combine qrdr_mut and qrdr_prop_out
+qrdr_mut_freq_prop <- cbind(qrdr_mut, qrdr_prop_out) %>%
+  select(resistant, total, estimate1, estimate2, p.value) %>%
+  mutate(p.value=as.numeric(p.value))
 
-mech_freq_prop
+qrdr_mut_freq_prop
+
+# specific mutations observed more than once, significantly associated with elevated resistance (vs wildtype QRDR)
+view(qrdr_mut_freq_prop %>% filter(total>1) %>% filter(p.value < 0.05))
+
+# the data provides evidence that ANY mutation at the 4 codons we track is associated with resistance, even though for some individual mutations we only have one observation:
+# check gyrA83, there are 5 mutations observed at this codon (A, F, I, L, Y)
+# 4 have large numbers (≥10) and significant p-values, gyrA-83A is observed only once but is also resistant
+qrdr_mut_freq_prop %>% filter(startsWith(Resistance.mech.type,"GyrA-83"))
+
+# Similar for GyrA-87, except that GyrA87-H is only seen in one strain and it is sensitive, so exclude this one (not a borderline phenotype)
+qrdr_mut_freq_prop %>% filter(startsWith(Resistance.mech.type,"GyrA-87"))
+
+# ParC-80 and ParC-84 look the same as for GyrA-83, ie all mutations at the site have same effect can be grouped together
+qrdr_mut_freq_prop %>% filter(startsWith(Resistance.mech.type,"ParC-80"))
+qrdr_mut_freq_prop %>% filter(startsWith(Resistance.mech.type,"ParC-84"))
+
+# based on the statistical analysis, QRDR mutations will be updated to have just 4 types 
+# (GyrA-83, GyrA-87, ParC-80, ParC-84) instead of 19 most of which are rare
+
+
+# compare each Omp mutations vs wildtype Omp
+omp_wt <- mech_freq %>% filter(Resistance.mech.type == "wt_Omp")
+omp_mut <- mech_freq %>% 
+  filter(startsWith(Resistance.mech.type, "Omp")) %>%
+  mutate(wt_res = omp_wt[2], wt_total=omp_wt[4]) # add columns with the wildtype counts for res & total
+
+# run prop.test() to each row, comparing the resistant counts (x) with the total counts (n)
+omp_prop_out <- dapply(as.matrix(omp_mut), MARGIN = 1, 
+       FUN = function(y) broom::tidy(prop.test(x=c(as.numeric(y[2]), as.numeric(y[5])), n=c(as.numeric(y[4]), as.numeric(y[6])))))
+
+omp_mut_freq_prop <- cbind(omp_mut, omp_prop_out) %>% 
+  select(resistant, total, estimate1, estimate2, p.value) %>%
+  mutate(p.value=as.numeric(p.value))
+
+# all four mutations (truncation of either ompK35 or ompK36; and insertion of GD or TD in OmpK36, are all significantly associated with resistance)
+view(omp_mut_freq_prop)
+
+
+# compare acquired vs no acquired genes
+no_acquired <- mech_freq %>% filter(Resistance.mech.type == "no_acquired_genes")
+acquired_genes <- mech_freq %>% 
+  filter(startsWith(Resistance.mech.type, "qnr") | startsWith(Resistance.mech.type, "qep") ) %>%
+  mutate(wt_res = no_acquired[2], wt_total=no_acquired[4]) # add columns with the wildtype counts for res & total
+
+# run prop.test() to each row, comparing the resistant counts (x) with the total counts (n)
+acquired_genes_prop_out <- dapply(as.matrix(acquired_genes), MARGIN = 1, 
+       FUN = function(y) broom::tidy(prop.test(x=c(as.numeric(y[2]), as.numeric(y[5])), n=c(as.numeric(y[4]), as.numeric(y[6])))))
+
+acquired_genes_freq_prop <- cbind(acquired_genes, acquired_genes_prop_out) %>% 
+  select(resistant, total, estimate1, estimate2, p.value) %>%
+  mutate(p.value=as.numeric(p.value))
+
+view(acquired_genes_freq_prop)
+
+# from the statistical analysis, the following can be combined:
+# qepA2 (n=1, which is resistant) with qepA2* (n=17, all of which are resistant)
+# qnrA1 and qnrA1^ (note the ^ means they are identical at protein level anyway) as all are resistant
+# qnrB1.v1, qnrB1.v2, qnrB1.v2^ for similar reasons
+# qnrB19, qnrB19^
+# qnrB2.1, qnrB2.2
+# qnrS1, qnrS1?, qnrS1*
+# could also combine all the 'rare' genes that are only seen 1-2 times each but are always resistant:
+# -> qnrB7, qnrE2, qnrS2, qnrVC1, qnrVC6
 ```
 
 
