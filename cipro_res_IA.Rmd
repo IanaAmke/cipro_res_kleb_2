@@ -1,12 +1,18 @@
 ---
 title: "Ciprofloxacin resistance in Klebsiella pneumoniae"
 author: "Iana Amke"
-date: "2022-11-03"
+date: "Last compiled on `r format(Sys.time(), '%d/%m/%y')`"
 output: 
-  html_document:
+  html_document: 
     df_print: paged
-    fig_width: 10
+    fig_width: 9
     fig_height: 8
+    mode: selfcontained
+    highlight: pygments
+    theme: 
+      bootswatch: flatly
+      code_font:
+        google: "JetBrains Mono"
 editor_options: 
   chunk_output_type: inline
 ---
@@ -18,7 +24,13 @@ editor_options:
 }
 </style>
 
-# Functions 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(dev = "svg", echo = TRUE, message = FALSE, warning = FALSE,
+                      cache = FALSE)
+```
+
+# Data Analysis Using R
+## Functions 
 ```{r}
 # create UpSet plots for AST measurements and fluoroquinolone resistance mechanisms
 upset_plot <- function(df, x, y) {
@@ -62,7 +74,7 @@ upset_plot <- function(df, x, y) {
 }
 ```
 
-# Load required libraries
+## Load required libraries
 ```{r message=FALSE}
 library(here)
 library(tidyverse)
@@ -70,9 +82,10 @@ library(scales)
 library(ggupset)
 library(RColorBrewer)
 library(collapse)
+library(DT)
 ```
 
-# Load antibiogram data and filter for ciprofloxacin
+## Load antibiogram data and filter for ciprofloxacin
 ```{r}
 # read antibiogram data
 antibiogram <- read.delim(file = "antibiogram_combined.tsv", 
@@ -113,8 +126,8 @@ cipro_antibiogram <- cipro_antibiogram %>%
   relocate(Flq_mutations, .after = ST)
 ```
 
-# Summaries
-## Sample count per dataset
+## Summaries {.tabset .tabset-pills}
+### Sample count per dataset
 ```{r fig.align='center'}
 cipro_antibiogram %>%
   group_by(index) %>%
@@ -125,8 +138,8 @@ cipro_antibiogram %>%
   theme(axis.title.x = element_blank(), axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
-## Total sample counts vs measurements for different lab typing methods
-### Disk diffusion
+### Total sample counts vs measurements for different lab typing methods {.tabset .tabset-pills}
+#### Disk diffusion
 ```{r fig.align='center'}
 cipro_antibiogram %>%
   group_by(Laboratory.Typing.Method) %>%
@@ -141,7 +154,6 @@ cipro_antibiogram %>%
   scale_linetype_manual(values = c("dotted", "solid"))
 ```
 
-### MIC
 #### MIC (broth dilution)
 ```{r fig.align='center'}
 cipro_antibiogram %>%
@@ -174,9 +186,9 @@ cipro_antibiogram %>%
   scale_linetype_manual(values = c("dotted", "solid")) 
 ```
 
-# UpSet plots for different lab typing methods to visualise resistance mechanism combinations
-## Combine Flq_mutations, Flq_acquired and Omp_mutations into one column
+## UpSet plots for different lab typing methods to visualise resistance mechanism combinations
 ```{r warning=FALSE}
+# combine Flq_mutations, Flq_acquired and Omp_mutations into one column
 cipro_res_mech <- cipro_antibiogram %>%
   pivot_longer(Flq_mutations:Omp_mutations, names_to = "Flq.resistance.mech", 
                values_to = "Resistance.mech.type") %>%
@@ -210,29 +222,34 @@ cipro_res_mech <- cipro_res_mech %>%
   mutate(Resistance.mech.type = replace(Resistance.mech.type, startsWith(Resistance.mech.type, "qnrB2"), "qnrB2")) %>%
   mutate(Resistance.mech.type = replace(Resistance.mech.type, startsWith(Resistance.mech.type, "qnrS1"), "qnrS1")) %>%
   mutate(Resistance.mech.type = replace(Resistance.mech.type, grepl(paste(rare_res_qnr_genes, collapse = "|"), Resistance.mech.type), "rare_res_qnr"))
-  
-#cipro_res_mech <- cipro_res_mech %>%
-#  mutate(Resistance.mech.type = replace(Resistance.mech.type, startsWith(Resistance.mech.type, "GyrA-87"), "GyrA-87"))
 
-# explicitly label strains with wildtype QRDR (gyrA/parC) and wt Omp as such
+# explicitly label strains with wildtype QRDR (gyrA/parC), wt porin (Omp), and no acquired genes as such
 cipro_res_mech <- cipro_res_mech %>%
   mutate(Resistance.mech.type = replace(Resistance.mech.type, Flq.resistance.mech=="Flq_mutations" & Resistance.mech.type=="-", "wt_QRDR")) %>%
   mutate(Resistance.mech.type = replace(Resistance.mech.type, Flq.resistance.mech=="Omp_mutations" & Resistance.mech.type=="-", "wt_Omp")) %>%
   mutate(Resistance.mech.type = replace(Resistance.mech.type, Flq.resistance.mech=="Flq_acquired" & Resistance.mech.type=="-", "no_acquired_genes"))
-
-view(cipro_res_mech)
 ```
 
-## Summary bar plot of resistance mechanisms
-```{r fig.width=20, fig.height=10}
+### Summary bar plot of resistance mechanisms {.tabset .tabset-pills}
+#### Count table
+```{r}
+# count number of occurrences of the different fluoroquinolone resistance determinants
 summ_res_mech <- cipro_res_mech %>%
   filter(Resistance.mech.type != "wt_Omp" & Resistance.mech.type != "wt_QRDR" & 
            Resistance.mech.type != "no_acquired_genes") %>%
   group_by(Flq.resistance.mech, Resistance.mech.type) %>%
   summarise(count = n()) 
 
-summ_res_mech
+DT::datatable(summ_res_mech,
+              width = "50%",
+              extensions = "FixedHeader",
+              rownames = FALSE,
+              options = list(paging=TRUE, fixedHeader=TRUE, scrollX=TRUE))
+```
 
+
+#### Summary bar plot
+```{r fig.width=10, fig.height=8, fig.align='center'}
 summ_res_mech %>%
   ggplot(aes(Resistance.mech.type, count, fill = Flq.resistance.mech)) +
   geom_bar(stat = "identity") +
@@ -243,41 +260,18 @@ summ_res_mech %>%
   scale_fill_brewer(palette = "Accent")
 ```
 
-## UpSet plots
-### MIC
+### UpSet plots {.tabset .tabset-pills}
 #### MIC (broth dilution)
-```{r warning=FALSE, message=FALSE}
-knitr::opts_chunk$set(echo = TRUE, cache = FALSE)
-p <- cipro_res_mech %>%
+```{r fig.height=12, fig.width=28, warning=FALSE, message=FALSE}
+cipro_res_mech %>%
   filter(!(Resistance.mech.type == "no_acquired_genes")) %>% # exclude these rows as not informative
   filter(Laboratory.Typing.Method == "MIC (broth dilution)") %>%
   upset_plot("Resistance.mech.type", "Laboratory.Typing.Method") +
   labs(title = "MIC (broth dilution) measurements") 
 ```
 
-<style>
-  .bigupsetplot{
-      overflow-x:scroll !important;
-      white-space: nowrap;
-      max-width: 1500px;
-      max-height: 1500px:
-  }
-  .bigupsetplot img{
-     max-width: 300%;
-  }
-</style>
-
-<div class="bigupsetplot">
-```{r echo=FALSE, fig.height=12, fig.width=28, warning=FALSE, cache=FALSE}
-# this produces the plot with a special css class (scrollable figure)
-p
-```
-</div>
-
 #### MIC (agar dilution)
-```{r warning=FALSE, fig.width=10, fig.height=8, fig.align='center'}
-knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, 
-                      dpi = 300, cache = FALSE, attr.output = 'style="max-height: 300px;"')
+```{r warning=FALSE, fig.width=10, fig.height=8, fig.align='center', message=FALSE}
 cipro_res_mech %>%
   filter(!(Resistance.mech.type == "no_acquired_genes")) %>% # exclude these rows as not informative
   filter(Laboratory.Typing.Method == "MIC (agar dilution)") %>%
@@ -285,21 +279,18 @@ cipro_res_mech %>%
   labs(title = "MIC (agar dilution) measurements") 
 ```
 
-### Disk diffusion
+#### Disk diffusion
 ```{r warning=FALSE, fig.width=13, fig.height=9, fig.align='center'}
-knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
-                      dpi = 300, cache = FALSE, attr.output = 'style="max-height: 300px;"')
-
 cipro_res_mech %>%
   filter(!(Resistance.mech.type == "no_acquired_genes")) %>% # exclude these rows as not informative
   filter(Laboratory.Typing.Method == "Disk diffusion") %>%
   upset_plot("Resistance.mech.type", "Laboratory.Typing.Method")
 ```
 
-# ST analysis
-## Resistant strains displaying fluoroquinolone resistance mechanisms
-### ST count 
-```{r fig.width=10, fig.height=8, fig.align='center'}
+## ST analysis
+### Resistant strains displaying fluoroquinolone resistance mechanisms {.tabset .tabset-pills}
+#### ST count 
+```{r}
 # count STs with resistant phenotype
 top_35_st_res <- cipro_antibiogram %>%
   filter(Resistance.phenotype == "resistant") %>%
@@ -311,8 +302,15 @@ top_35_st_res <- cipro_antibiogram %>%
   head(35) %>%
   mutate(ST = factor(ST, levels = ST, ordered = TRUE))
 
-top_35_st_res
+DT::datatable(top_35_st_res, 
+              width = "50%",
+              extensions = "FixedHeader",
+              rownames = FALSE,
+              options = list(paging=TRUE, fixedHeader=TRUE, scrollX=TRUE))
+```
 
+#### Summary bar plot
+```{r fig.width=10, fig.height=8, fig.align='center'}
 # Blues palette with 9 colors
 colour_palette <- brewer.pal(9, "Blues") 
 
@@ -334,73 +332,63 @@ top_35_st_res %>%
   coord_cartesian(clip = "off")
 ```
 
-### Resistant STs associated with specific fluoroquinolone resistance mechanisms
-```{r fig.width=20, fig.height=10, fig.align='center'}
-st_mech <- cipro_antibiogram %>%
-  filter(Flq_mutations != "-" | Flq_acquired != "-" | Omp_mutations != "-") %>%
+#### Resistant STs associated with specific fluoroquinolone resistance mechanisms {.tabset .tabset-pills}
+##### Proportion table
+```{r}
+st_totals <- cipro_antibiogram %>%
   group_by(ST) %>%
-  mutate(sample_count = n()) %>%
-  arrange(desc(sample_count)) %>%
-  filter(sample_count >= 17) %>%
-  pivot_longer(Flq_mutations:Omp_mutations, names_to = "Flq.resistance.mech", 
-               values_to = "Resistance.mech.type") %>%
-  filter(Resistance.mech.type != "-") %>%
-  mutate(Resistance.mech.type = replace(Resistance.mech.type, grepl("OmpK35-", Resistance.mech.type), "OmpK35-trunc")) %>%
-  mutate(Resistance.mech.type = replace(Resistance.mech.type, grepl("OmpK36-", Resistance.mech.type), "OmpK36-trunc")) 
+  summarise(N=n())
 
-st_res_mech <- st_mech %>%
+st_res_mech <- cipro_res_mech %>%
   filter(Resistance.phenotype == "resistant") %>%
-  group_by(ST) %>%
-  summarise(res_mech = Resistance.mech.type) %>%
-  as.data.frame() %>%
-  count(ST, res_mech, sort = TRUE)
+  filter(Resistance.mech.type != "wt_QRDR", Resistance.mech.type != "wt_Omp",
+         Resistance.mech.type != "no_acquired_genes") %>%
+  count(ST, Resistance.mech.type) %>% 
+  left_join(st_totals) %>% # ST total counts
+  mutate(prop = n/N) %>% # proportion per ST
+  mutate(se = sqrt(prop*(1-prop)/N)) %>%
+  mutate(p_lowerCI = prop-1.96*se, p_upperCI = prop+1.96*se) %>%
+  mutate(p_lowerCI = replace(p_lowerCI, p_lowerCI<0, 0)) %>%
+  mutate(p_upperCI = replace(p_upperCI, p_upperCI>1, 1)) %>%
+  select(-se) %>%
+  mutate(ST = factor(ST, levels = unique(ST)))
 
-st_res_mech
-
-# Classic palette Paired, with 12 colors
-colour_palette_2 <- brewer.pal(12, "Paired") 
-
-# Add more colors to this palette :
-colour_palette_2 <- colorRampPalette(colour_palette_2)(67)
-
-# bar plot showing resistance mechanism combination count
-st_res_mech %>%
-  mutate(ST = factor(ST, levels = unique(ST))) %>%
-  ggplot(aes(ST, n, fill = res_mech)) +
-  geom_bar(stat = "identity") +
-  labs(title = "Fluoroquinolone resistance mechanisms employed by the top resistant STs", y = "Count", fill = "Fluoroquinolone resistance\nmechanisms") +
-  scale_fill_manual(values = colour_palette_2) +
-  # put legend in one column
-  guides(fill = guide_legend(ncol = 2))
-
-# bar plot showing %frequency of resistance mechanism combinations
-st_res_mech_freq <- st_mech %>%
-  group_by(ST, Resistance.mech.type) %>%
-  summarise(n = n()) %>%
-  mutate(freq = n / sum(n)) %>%
-  ungroup() %>%
-  group_by(ST) %>%
-  mutate(total = sum(n)) %>%
-  relocate(freq, .after = total)
-
-# Classic palette Paired, with 12 colors
-colour_palette_3 <- brewer.pal(12, "Paired") 
-
-# Add more colors to this palette :
-colour_palette_3 <- colorRampPalette(colour_palette_2)(67)
-
-st_res_mech_freq %>%
-  ggplot(aes(ST, freq, fill = Resistance.mech.type)) +
-  geom_bar(stat = "identity") +
-  labs(title = "Fluoroquinolone resistance mechanisms employed by the top resistant STs", y = "% Frequency", fill = "Fluoroquinolone resistance\nmechanisms") +
-  scale_fill_manual(values = colour_palette_3) +
-  scale_y_continuous(labels = scales::percent) + 
-  # put legend in one column
-  guides(fill = guide_legend(ncol = 2))
+DT::datatable(st_res_mech, 
+              extensions = "FixedHeader",
+              rownames = FALSE,
+              options = list(paging=TRUE, fixedHeader=TRUE, scrollX=TRUE))
 ```
 
-## Resistant strains displaying no fluoroquinolone resistance mechanisms
-```{r fig.width=15, fig.height=8}
+##### Heatmap of frequencies of resistance determinants per ST
+```{r fig.align='center'}
+st_res_mech %>%
+  filter(ST %in% st_res_mech$ST[st_res_mech$prop>0.1 & st_res_mech$N>50]) %>%
+  ggplot(aes(x=ST, y = Resistance.mech.type)) +
+  geom_tile(aes(fill=prop)) +
+  labs(subtitle = "Fluoroquinolone resistance mechanisms in top resistant STs", 
+       y = "Fluoroquinolone resistance mechanisms", fill = "Proportion per \nST") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8, colour = "black")) + 
+  scale_fill_gradient(low = "white", high = "red")
+```
+
+##### Heatmap/UpSet plot showing %frequency of resistance determinants
+```{r  fig.width=10, fig.height=8, fig.align='center'}
+st_res_mech %>%
+  filter(ST %in% st_res_mech$ST[st_res_mech$prop>0.1 & st_res_mech$N>50]) %>%
+  select(- c("p_lowerCI", "p_upperCI")) %>%
+  group_by(ST, prop) %>% 
+  summarize(res_mech_list = list(Resistance.mech.type)) %>%
+  ggplot(aes(res_mech_list, ST, fill = prop)) + geom_tile() + 
+  labs(title = "Proportion of fluoroquinolone resistance determinants per ST", 
+       x = "Fluoroquinolone resistance determinants", y = "ST", fill = "Proportion per\nST") +
+  scale_x_upset() +
+  theme_combmatrix(combmatrix.panel.line.size = 0.8) + 
+  scale_fill_gradient(low = "white", high = "red")
+```
+
+### Resistant strains displaying no fluoroquinolone resistance mechanisms {.tabset .tabset-pills}
+#### Count table
+```{r}
 no_res_mech <- cipro_antibiogram %>%
   filter(Flq_mutations == "-", Flq_acquired == "-", Omp_mutations == "-") %>%
   filter(Resistance.phenotype == "resistant")
@@ -412,30 +400,49 @@ st_no_res_mech <- no_res_mech %>%
   arrange(desc(sample_count)) %>%
   mutate(ST = factor(ST, levels = ST, ordered = TRUE))
 
-st_no_res_mech
+DT::datatable(st_no_res_mech,
+              width = "50%",
+              extensions = "FixedHeader",
+              rownames = FALSE,
+              options = list(paging=TRUE, fixedHeader=TRUE, scrollX=TRUE))
+```
 
+#### Bar plot
+```{r fig.align='center'}
 st_no_res_mech %>%
-  filter(sample_count != 1) %>%
+  filter(sample_count > 2) %>%
   ggplot(aes(ST, sample_count)) +
   geom_bar(stat = "identity", fill = "blue", alpha = 0.7) +
   labs(title = "Resistant STs with no fluoroquinolone resistance mechanisms", y = "Count") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
-## Susceptible strains displaying fluoroquinolone resistance mechanisms
-```{r fig.align='center'}
-st_sus_res_mech <- st_mech %>%
+### Susceptible strains displaying fluoroquinolone resistance mechanisms {.tabset .tabset-pills}
+#### Count table
+```{r}
+sus_res_mech <- cipro_res_mech %>%
   filter(Resistance.phenotype == "susceptible") %>%
+  filter(Resistance.mech.type != "wt_QRDR", Resistance.mech.type != "wt_Omp",
+         Resistance.mech.type != "no_acquired_genes")
+
+st_sus_res_mech <- sus_res_mech %>%
   group_by(ST) %>%
   summarise(res_mech = Resistance.mech.type) %>%
   as.data.frame() %>%
   count(ST, res_mech, sort = TRUE) %>%
-  filter(n != 1) %>%
   mutate(ST = factor(ST, levels = unique(ST)))
 
-st_sus_res_mech 
+DT::datatable(st_sus_res_mech,
+              width = "50%",
+              extensions = "FixedHeader",
+              rownames = FALSE,
+              options = list(paging=TRUE, fixedHeader=TRUE, scrollX=TRUE))
+```
 
+#### Bar plot
+```{r fig.align='center'}
 st_sus_res_mech %>%
+  filter(n != 1) %>%
   ggplot(aes(ST, n, fill = res_mech)) +
   geom_bar(stat = "identity") +
   labs(title = "Fluoroquinolone resistance mechanisms employed by the top susceptible STs", y = "Count", fill = "Fluoroquinolone resistance\nmechanisms") +
@@ -444,47 +451,33 @@ st_sus_res_mech %>%
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
-### UpSet plots 
-```{r}
-sus_res_mech <- cipro_res_mech %>%
-  filter(Resistance.phenotype == "susceptible") %>%
-  filter(Resistance.mech.type != "wt_Omp" & Resistance.mech.type != "wt_QRDR" & 
-           Resistance.mech.type != "no_acquired_genes")
-```
-
-#### Disk diffusion
-```{r warning=FALSE, fig.height=10, fig.align='center'}
-knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
-                      dpi = 300, cache = FALSE, attr.output = 'style="max-height: 300px;"')
-
+#### UpSet plots {.tabset .tabset-pills}
+##### Disk diffusion
+```{r warning=FALSE, fig.height=6, fig.align='center'}
 sus_res_mech %>%
   filter(Laboratory.Typing.Method == "Disk diffusion") %>%
   upset_plot("Resistance.mech.type", "Laboratory.Typing.Method")
 ```
 
-#### MIC (broth dilution)
-```{r warning=FALSE, fig.width=10, fig.height=10, fig.align='center'}
-knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, 
-                      dpi = 300, cache = FALSE, attr.output = 'style="max-height: 300px;"')
+##### MIC (broth dilution)
+```{r warning=FALSE, fig.align='center'}
 sus_res_mech %>%
   filter(Laboratory.Typing.Method == "MIC (broth dilution)") %>%
   upset_plot("Resistance.mech.type", "Laboratory.Typing.Method") +
   labs(title = "MIC (broth dilution) measurements") 
 ```
 
-#### MIC (agar dilution)
-```{r warning=FALSE, fig.width=10, fig.height=10, fig.align='center'}
-knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, 
-                      dpi = 300, cache = FALSE, attr.output = 'style="max-height: 300px;"')
+##### MIC (agar dilution)
+```{r warning=FALSE, fig.align='center'}
 sus_res_mech %>%
   filter(Laboratory.Typing.Method == "MIC (agar dilution)") %>%
   upset_plot("Resistance.mech.type", "Laboratory.Typing.Method") +
   labs(title = "MIC (agar dilution) measurements") 
 ```
 
-# Statistical analysis
-## Proportion test
-```{r prop_test}
+## Statistical analysis
+### Proportion test
+```{r prop_test, eval=FALSE}
 # calculate frequencies of different resistance mechanisms for the different phenotypes
 # including numbers for the wildtype groups for comparison to compare resistance frequency 
 # amongst strains with the determinant vs strains without
@@ -584,4 +577,8 @@ view(acquired_genes_freq_prop)
 # -> qnrB7, qnrE2, qnrS2, qnrVC1, qnrVC6
 ```
 
+## Session information
+```{r}
+sessionInfo()
+```
 
