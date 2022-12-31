@@ -1,0 +1,15 @@
+KpT7 <- read.delim(file = "metadata/KpT7_sample_alias.tsv", header = TRUE, sep = "\t")
+KpNORM <- read.delim(file = "metadata/KpNORM_sample_alias.tsv", header = TRUE, sep = "\t")
+Sunde <- read.delim(file = "metadata/Sunde_sample_alias.tsv", header = TRUE, sep = "\t")
+Nigeria <- read.delim(file = "metadata/Nigeria_sample_alias.tsv", header = TRUE, sep = "\t")
+Torok <- read.delim(file = "metadata/Torok_Vietnam_sample_alias.tsv", header = TRUE, sep = "\t")
+sands_arthropods <- read.delim(file = "metadata/sands_2021_athropods_sample_alias.tsv", header = TRUE, sep = "\t")
+sands_BARNARDS <- read.delim(file = "metadata/sands_2021_BARNARDS_sample_alias.tsv", header = TRUE, sep = "\t")
+Addenbrookes <- read.delim(file = "metadata/Addenbrookes_sample_alias.tsv", header = TRUE, sep = "\t")
+Colombia <- read.delim(file = "metadata/Colombia_sample_alias.tsv", header = TRUE, sep = "\t")
+Huynh <- read.delim(file = "metadata/Huynh2020_sample_alias.tsv", header = TRUE, sep = "\t")
+Stoesser <- read.delim(file = "metadata/Stoesser_sample_alias.tsv", header = TRUE, sep = "\t")
+
+kleb_sample_metadata <- rbind(KpT7, KpNORM, Sunde, Nigeria, Torok, sands_arthropods, sands_BARNARDS, Addenbrookes, Colombia, Huynh, Stoesser)
+
+write_delim(kleb_sample_metadata, file = "metadata/kleb_sample_metadata.tsv", delim = "\t")
