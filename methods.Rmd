@@ -30,7 +30,7 @@ knitr::opts_chunk$set(dev = 'png', echo = TRUE, message = FALSE, warning = FALSE
 ```
 
 ```{r functions, include=FALSE}
-# functions 
+# Functions 
 # 1. upset_violin_plot to create violin + UpSet plots for AST measurements and fluoroquinolone resistance mechanisms
 
 # create violin + UpSet plots for AST measurements and fluoroquinolone resistance mechanisms
@@ -165,7 +165,7 @@ group_res_mech <- function(df, x) {
 # Preliminary analysis of sample data
 The data is made up of assembled *K. pneumoniae* genomes with matched antibiogram data. The first step of data analysis involved filtering for ciprofloxacin and mechanisms that contribute to fluoroquinolone resistance i.e. *gyrA* and *parC* mutations found in the Flq_mutations column.  
 
-Afterwards, the data was visualised using bar plots which showed sample count per dataset and sample count for each of the laboratory typing methods used i.e MIC broth and agar dilution and disk diffusion and violin plots in combination with UpSet plots which showed the distribution of fluoroquinolone mutations in the genomes being analysed. Disk diffusion and MIC measurements were also checked to make sure they were valid - those not valid were filtered out.
+Afterwards, the data was visualised using bar plots which showed sample count per dataset and sample count for each of the laboratory typing methods used i.e MIC broth and agar dilution and disk diffusion and violin plots in combination with UpSet plots which showed the distribution of fluoroquinolone mutations in the genomes being analysed. Disk diffusion and MIC measurements were also checked to make sure they were valid - all disk diffusion measurements were correct but there were MIC measurements that were invalid i.e. two strains in the Italy_MVK_MIC dataset with 0.12 mg/L and one in the Egli_MIC dataset with 0.75 mg/L MIC (broth dilution) measurements and 12 strains in the Parkhill dataset with 0.12 mg/L MIC (agar dilution) measurements. 
 
 ## Load required libraries
 ```{r}
@@ -205,14 +205,12 @@ cipro_antibiogram <- antibiogram %>%
                                             "CLSI" & Measurement >= 26 ~ "susceptible",
                                           Laboratory.Typing.Method == "Disk diffusion" & Testing.standard == 
                                             "CLSI" & Measurement <= 21 ~ "resistant",
-                                          TRUE ~ "intermediate")) %>%
-  # filter out strains with measurement of 0.12 and 0.75 (no such MIC measurements)
-  filter(Measurement != 0.12 & Measurement != 0.75)
+                                          TRUE ~ "intermediate")) 
 
 #write_delim(cipro_antibiogram, file = "cipro_antibiogram.tsv", delim = "\t")
 ```
 
-## Summaries {.tabset .tabset-pills}
+## Summary bar plots {.tabset .tabset-pills}
 ### Sample count per dataset
 ```{r}
 cipro_antibiogram %>%
@@ -310,7 +308,7 @@ cipro_antibiogram %>%
   scale_linetype_manual(values = c("solid", "dotted"))
 ```
 
-## UpSet plots for different lab typing methods to visualise resistance mechanism combinations
+## UpSet plots visualising resistance mechanism combinations for the lab typing methods
 ```{r}
 # combine Flq_mutations into one column
 cipro_res_mech <- cipro_antibiogram %>%
@@ -372,7 +370,7 @@ cipro_res_mech %>%
   upset_violin_plot("Resistance.mech.type", "Laboratory.Typing.Method", "Testing.standard")
 ```
 
-From the violin plots, one can see that some genomes with no mutations are resistant to ciprofloxacin. These genomes were filtered out and saved in a file called **cipro_res_no_mutations.tsv** and used in the subsequent step of extracting *gyrA* and *parC* gene sequences and checking for mutations. 
+From the violin plots, one can see that there are genomes with no mutations (1299/10448) that are resistant to ciprofloxacin. Those genomes were filtered out and saved as **cipro_res_no_mutations.tsv**. 
 
 ```{r}
 # filter for resistant strains with no gyrA or parC mutations
@@ -384,9 +382,10 @@ cipro_res_no_mut <- cipro_res_mech %>%
 ```
 
 # Extraction of *gyrA* and *parC* gene sequences
-Assembled *K. pneumoniae* genomes of the 26 datasets used in the analysis were retrieved from Massive M3 using the **copy_fasta.sh** job script and GyrA and ParC reference amino acid sequences were retrieved from the Kleborate GitHub repo (https://github.com/katholt/Kleborate/blob/master/kleborate/resBLAST.py). TBLASTN was used to find nucleotide sequences of those proteins - GenBank accession number **AJ292307.1** for *gyrA* and **MZ242286.1** for *parC*. Translate tool on Expasy (https://web.expasy.org/translate/) was used to trim the nucleotide sequences so that the amino acid sequence produced matched that from Kleborate.
+## BLAST analysis of the genomes
+Assembled *K. pneumoniae* genomes of the 26 datasets used in the analysis were retrieved from Massive M3 using the **copy_fasta.sh** job script. GyrA and ParC reference amino acid sequences were then retrieved from the Kleborate GitHub repo (https://github.com/katholt/Kleborate/blob/master/kleborate/resBLAST.py). TBLASTN was used to find nucleotide sequences of those amino acid sequences - GenBank accession number **AJ292307.1** for *gyrA* and **MZ242286.1** for *parC* - and the Translate tool on Expasy (https://web.expasy.org/translate/) was afterwards used to trim the nucleotide sequences so that the amino acid sequences produced matched those from Kleborate.
 
-The *gyrA* and *parC* reference nucleotide sequences were then combined into one FASTA file which was used as the query for BLASTN while the subjects were the genomes from the various datasets. This was run using **cipro_blast.sh** on Massive. The output contained all the blast hits for the two genes. To obtain the unique blast hits, **cipro_blast_unique_hits.sh** was run. All the unique hits from the different datasets were combined into one dataframe and a metadata file was used to convert run accession IDs into strain IDs. Afterwards, the unique hits dataframe was combined with the genomes + matched antibiogram dataframe (cipro_antibiogram) which will be used to filter out extracted *gyrA* and *parC* sequences. 
+The *gyrA* and *parC* reference nucleotide sequences were then combined into one FASTA file which was used as the query for BLASTN while the subjects were the genomes from the various datasets. This was run using **cipro_blast.sh** on Massive. The output contained all the blast hits for the two genes. To obtain the unique blast hits, **cipro_blast_unique_hits.sh** was run. All the unique hits from the different datasets were combined into one dataframe and a metadata file was used to convert run accession IDs into strain IDs. Thereafter, the unique hits dataframe was combined with the genomes + matched antibiogram dataframe (cipro_antibiogram) and this was used to filter out extracted *gyrA* and *parC* sequences in the next step. 
 
 ```{r}
 # read unique hits data files for all ciprofloxacin datasets using the data.table package
@@ -449,11 +448,18 @@ cipro_antibiogram_uniquehits <- cipro_antibiogram_uniquehits %>%
 #write_delim(cipro_antibiogram_uniquehits, file = "cipro_antibiogram_uniquehits.tsv", delim = "\t")
 ```
 
-*gyrA* and *parC* gene sequences were then extracted using **extract_blast_gyra.sh** and **extract_blast_parc.sh** job scripts respectively using the default cut-off for length (50%) and 95%, 90%, and finally 80% identity cut-off. **filter_gyrA_parC.py** was used to check whether *gyrA* and *parC* gene sequences were extracted for all genomes (fasta file headers were manually edited: .fasta contig -> .fasta_contig e.g. .fasta 6 -> .fasta_6") and rename the headers in the following pattern: ID_gene_contig. This was run on Massive using **filter_gyrA_parC.sh**. *gyrA* sequence of **KP_NORM_BLD_2011_75132** was added manually (after querying the genome against the reference using BLASTN) as it was not picked up by the job script.
+## Extraction of *gyrA* and *parC* nucleotide sequences
+*gyrA* and *parC* gene sequences were then extracted using **extract_blast_gyra.sh** and **extract_blast_parc.sh** job scripts respectively using the default cut-off for length (50%). Various identity cut-offs were used to extract *gyrA* and *parC* nucleotide sequences for all the genomes with matched antibiogram data and **filter_gyrA_parC.py** was used to check whether the gene sequences were extracted for all genomes, by running **filter_gyrA_parC.sh** on Massive, after manually editing the resulting fasta file headers as follows: .fasta contig -> .fasta_contig e.g. .fasta 6 -> .fasta_6. A cut-off of 95% was first used followed by a cut-off of 90% was used and finally an identity cut-off of 80%. The headers for the filtered fasta file **filtered_gyrA_parC.fasta** were renamed in the following pattern: genome ID_gene name_contig number. The *gyrA* sequence of **KP_NORM_BLD_2011_75132** was added manually (after querying the genome against the reference using BLASTN) as it was not picked up by the **extract_blast_gyra.sh** job script.
 
-Gaps were then removed from the resulting output, **filtered_gyrA_parC.fasta**, using `seqkit seq -g filtered_gyrA_parC.fasta > filtered_gyrA_parC_nogaps.fasta`and the presence of any duplicated IDs was checked using `seqkit rmdup -n < filtered_gyrA_parC_nogaps.fasta > filtered_gyrA_parC_nogaps_NR.fasta -D filtered_gyrA_parC_nogaps_NR_duplicate_info.txt -d filtered_gyrA_parC_nogaps_NR_duplicate_seqs.fasta`. *gyrA* and *parC* gene sequences were then separated using `seqkit grep -r -p gyrA filtered_gyrA_parC_nogaps_NR.fasta -o filtered_gyrA.fasta` and `seqkit grep -r -p parC filtered_gyrA_parC_nogaps_NR.fasta -o filtered_parC.fasta` respectively to obtain **filtered_gyrA.fasta** and **filtered_parC.fasta** as output files. Prodigal was then run to translate the *gyrA* and *parC* nucleotide sequences into amino acid sequences using the following commands respectively: `./prodigal.linux -i filtered_gyrA.fasta -o filtered_gyrA_gene.coords.gbk -a filtered_gyrA_aa.faa` and `./prodigal.linux -i filtered_parC.fasta -o filtered_parC_gene.coords.gbk -a filtered_parC_aa.faa`.
+Gaps were then removed from **filtered_gyrA_parC.fasta** using `seqkit seq -g filtered_gyrA_parC.fasta > filtered_gyrA_parC_nogaps.fasta` and the presence of any duplicated IDs was checked using `seqkit rmdup -n < filtered_gyrA_parC_nogaps.fasta > filtered_gyrA_parC_nogaps_NR.fasta -D filtered_gyrA_parC_nogaps_NR_duplicate_info.txt -d filtered_gyrA_parC_nogaps_NR_duplicate_seqs.fasta`. *gyrA* and *parC* gene sequences were then separated using `seqkit grep -r -p gyrA filtered_gyrA_parC_nogaps_NR.fasta -o filtered_gyrA.fasta` and `seqkit grep -r -p parC filtered_gyrA_parC_nogaps_NR.fasta -o filtered_parC.fasta` respectively to obtain **filtered_gyrA.fasta** and **filtered_parC.fasta** as output files. 
 
-BLASTP was then run on Massive using **blast_gyra.sh** and **blast_parc.sh** whereby **filtered_gyrA_aa.faa** and **filtered_parC_aa.faa** were queried against **gyra_ref_aa_seq.faa** and **parc_ref_aa_seq.faa** to get blast outputs with the best hits, **gyrA_blast.tsv** and **parC_blast.tsv**. The amino acid sequences of the best hits were extracted using **extract_gyra_blast.py** and **extract_parc_blast.py** into **gyra_blast.faa** and **parc_blast.faa** respectively. The GyrA amino acid sequence of **KP_NORM_BLD_2011_75132** was added manually to the **gyra_blast.faa** file by first translating the nucleotide sequence using the Translate tool on Expasy (https://web.expasy.org/translate/) - 3'5' frame 1 was chosen. **gyra_blast.faa** and **parc_blast.faa** were then aligned to the reference sequences using mafft: `mafft parc_blast.faa/gyra_blast.faa > parc_blast_align.faa/gyra_blast_align.faa` to first align the sequences then `mafft --addfull parc_ref_aa_seq.faa/gyra_ref_aa_seq.faa parc_blast_align.faa/gyra_blast_align.faa > parc_blast_align_with_ref.faa/gyra_blast_align_with_ref.faa` to align them to the reference. The reference sequences were thereafter removed from the resulting alignment files. Afterwards, strains with WT GyrA/ParC, those with mutations in the proteins and with truncated amino acid sequences were summarised using **gyrA_mismatch_pos.py** and **parC_mismatch_pos.py**. The mutations - **gyrA_mutations.csv** and **parC_mutations.csv** - were then compared to the Kleborate output and mutations not in Kleborate but fall within the quinolone resistance-determining region (QRDR) i.e. position 67-106 for GyrA and 63 to 102 for ParC were saved in **mutations_not_in_kleborate.tsv**. Mutations different from those picked up by Kleborate were marked with a double asterisk (**).
+## Translation of nucleotide sequences
+Prodigal was run to translate the *gyrA* and *parC* nucleotide sequences into amino acid sequences using the following commands respectively: `prodigal -i filtered_gyrA.fasta -o filtered_gyrA_gene.coords.gbk -a filtered_gyrA_aa.faa` and `prodigal -i filtered_parC.fasta -o filtered_parC_gene.coords.gbk -a filtered_parC_aa.faa`.
+
+After running Prodigal, BLASTP was run on Massive using **blast_gyra.sh** and **blast_parc.sh** whereby **filtered_gyrA_aa.faa** and **filtered_parC_aa.faa** were queried against **gyra_ref_aa_seq.faa** and **parc_ref_aa_seq.faa** to get blast outputs with the best hits, **gyrA_blast.tsv** and **parC_blast.tsv**. The amino acid sequences of the best hits were extracted using **extract_gyra_blast.py** and **extract_parc_blast.py** and saved as **gyra_blast.faa** and **parc_blast.faa** respectively. The GyrA amino acid sequence of **KP_NORM_BLD_2011_75132** was added manually to the **gyra_blast.faa** file by first translating the nucleotide sequence using the Translate tool on Expasy - 3'5' frame 1 was chosen. 
+
+## Alignment to GyrA and ParC reference sequences
+**parc_blast.faa** and **gyra_blast.faa** were then aligned to the reference sequences using mafft and the reference sequences were removed from the resulting alignment files: `mafft parc_blast.faa > parc_blast_align.faa` and `mafft gyra_blast.faa > gyra_blast_align.faa` to first align the sequences then `mafft --addfull parc_ref_aa_seq.faa parc_blast_align.faa > parc_blast_align_with_ref.faa` and `mafft --addfull gyra_ref_aa_seq.faa gyra_blast_align.faa > gyra_blast_align_with_ref.faa` to align them to the reference. Afterwards, strains with WT GyrA/ParC, those with mutations in the proteins and with truncated amino acid sequences were summarised using **gyrA_mismatch_pos.py** and **parC_mismatch_pos.py**. The mutations, obtained from **gyrA_mutations.csv** and **parC_mutations.csv**, were then compared to the Kleborate output and mutations not in Kleborate but fall within the quinolone resistance-determining region (QRDR) i.e. position 67-106 for GyrA and 63-102 for ParC were saved in **mutations_not_in_kleborate.tsv**. Mutations different from those picked up by Kleborate were marked with a double asterisk (**).
 
 ```{r results='hide'}
 # read GyrA mutations file
@@ -574,7 +580,9 @@ mutations_not_in_kleborate <- gyra_in_qrdr %>%
 ```
 
 # Subsequent analysis of resistant strains and STs
-Following data cleaning, preliminary analysis, and extraction of GyrA and ParC mutations, mutations in the two proteins that had not been included in the Kleborate output were added to cipro_antibiogram and the Flq_acquired column was also included in subsequent data analysis - some strains were resistant but had no mutations in GyrA or ParC therefore acquired fluoroquinolone resistance genes might be contributing to their resistant phenotype.
+Following data cleaning, preliminary analysis, and extraction of GyrA and ParC mutations, mutations in the two proteins that had not been included in the Kleborate output were added to cipro_antibiogram and the Flq_acquired and Omp_mutations columns were also included in subsequent data analysis - some strains were resistant but had no mutations in GyrA or ParC therefore acquired fluoroquinolone resistance genes or mutations in the pores (outer membrane proteins (Omp)) might be contributing to their resistant phenotypes.
+
+Strains with invalid MIC measurements were filtered out from the antibiogram data and the summary bar plots were created again with the updated dataframe. 
 
 ```{r}
 # read antibiogram data again and filter for ciprofloxacin
@@ -640,7 +648,7 @@ cipro_antibiogram <- cipro_antibiogram %>%
   relocate(Flq_mutations, .before = Flq_acquired)
 ```
 
-## Summaries {.tabset .tabset-pills}
+## Summary bar plots {.tabset .tabset-pills}
 ### Sample count per dataset
 ```{r}
 cipro_antibiogram %>%
@@ -738,7 +746,7 @@ cipro_antibiogram %>%
   scale_linetype_manual(values = c("solid", "dotted"))
 ```
 
-## UpSet plots for different lab typing methods to visualise resistance mechanism combinations
+## UpSet plots visualising resistance mechanism combinations for the lab typing methods
 ```{r}
 # combine Flq_mutations and Flq_acquired into one column
 # edit: remove Omp mutations from analysis as based on violin + upset plots, they
@@ -1157,7 +1165,7 @@ sus_res_mech %>%
 ```
 
 ```{r proportion, eval=FALSE, include=FALSE}
-# statistical analysis
+# Statistical analysis
 # proportion test
 
 # calculate frequencies of different resistance mechanisms for the different phenotypes
