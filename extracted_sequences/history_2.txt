@@ -1,0 +1,1000 @@
+ 1035  code .
+ 1036  conda deactivte 
+ 1037  conda deactivate 
+ 1038  cd ..
+ 1039  ls
+ 1040  cd ..
+ 1041  ls
+ 1042  cd python_scripts/
+ 1043  ls'
+ 1044  ls
+ 1045  code .
+ 1046  python3 fasta_header_edit_gene.py 
+ 1047  python3 fasta_header_edit_gene.py > trial.txt
+ 1048  python3 fasta_header_edit_gene.py
+ 1049  python3 fasta_header_edit_gene.py > trial.txt
+ 1050  python3 fasta_header_edit_gene.py
+ 1051  rstudio
+ 1052  cd globusconnectpersonal-3.1.6/
+ 1053  ./globusconnectpersonal 
+ 1054  cd fos.res.kleb/extract_seq/
+ 1055  grep -c ">" *.fasta
+ 1056  cd
+ 1057  history
+ 1058  history > history_project.txt
+ 1059  ssh -l iamke m3.massive.org.au
+ 1060  cd fos.res.kleb/extract_seq/
+ 1061  grep -c ">" *.fasta
+ 1062  ls
+ 1063  cd 90ID/
+ 1064  ls
+ 1065  rm fosgeneHits_aligned.fasta fosgeneHits.tree 
+ 1066  ls
+ 1067  grep ">" fosgeneHits.fasta > headers.txt
+ 1068  head -20 headers.txt 
+ 1069  man cat
+ 1070  man cut
+ 1071  grep ">" fosgeneHits.fasta | cut -d "/" -f1,7 > headers.txt
+ 1072  head -20 headers.txt 
+ 1073  grep ">" fosgeneHits.fasta | cut -d "/" -f7 > headers.txt
+ 1074  head -20 headers.txt 
+ 1075  grep ">" fosgeneHits.fasta | cut -d "/" -f7 | cut -d "." -f1 > headers.txt
+ 1076  head -20 headers.txt 
+ 1077  tail -20 headers.txt 
+ 1078  mv headers.txt extractedseq_headers.txt
+ 1079  ls
+ 1080  mv extractedseq_headers.txt extractedseq_ID.txt 
+ 1081  mv extractedseq_ID.txt /home/iamke/fos.res.kleb
+ 1082  cd ..
+ 1083  grep ">" fosgeneHits80ID.fasta > extractedIDs_80.txt
+ 1084  head extractedIDs_80.txt 
+ 1085  grep ">" fosgeneHits80ID.fasta | cut -d "/" -f7 > extractedIDs_80.txt
+ 1086  head extractedIDs_80.txt 
+ 1087  grep ">" fosgeneHits80ID.fasta | cut -d "/" -f7 | cut -d "." -f1 > extractedIDs_80.txt
+ 1088  head extractedIDs_80.txt 
+ 1089  mv extractedIDs_80.txt ~/fos.res.kleb/
+ 1090  ls -lt
+ 1091  python3 filter_fosgenes.py 
+ 1092  python3 filter_fosgenes.py > missing.txt
+ 1093  conda activate fos.phylogeny
+ 1094  ls -lt
+ 1095  grep -c ">" filtered_fosgenes_NR.fasta 
+ 1096  mafft filtered_fosgenes_NR.fasta > filtered_fosgenes_NR_aligned.fasta 
+ 1097  FastTree --help
+ 1098  FastTree -expert
+ 1099  FastTree -gtr -nt -boot 1000 -gamma -log filtered_fosgenes_NR_logfile filtered_fosgenes_NR_aligned.fasta > filtered_fosgenes_NR_newick_tree
+ 1100  FastTree -gtr -nt -gamma -log filtered_fosgenes_NR_logfile filtered_fosgenes_NR_aligned.fasta > filtered_fosgenes_NR_newick_tree
+ 1101  FastTree -gtr -nt -gamma -notop -log filtered_fosgenes_NR_2_logfile filtered_fosgenes_NR_aligned.fasta > filtered_fosgenes_NR_2_newick_tree
+ 1102  FastTree -gtr -nt -log filtered_fosgenes_NR_2_logfile filtered_fosgenes_NR_aligned.fasta > filtered_fosgenes_NR_2_newick_tree
+ 1103  cd ../../sortcontigs2/
+ 1104  ls
+ 1105  head Egli_MIC_uniqueHits.tsv 
+ 1106  cd ..
+ 1107  head fos_uniqueHits.tsv 
+ 1108  man cut
+ 1109  cut -f1 > uniquehits_ID.txt
+ 1110  cut -f1 fos_uniqueHits.tsv > uniquehits_ID.txt
+ 1111  head uniquehits_ID.txt 
+ 1112  cut -f1 fos_uniqueHits.tsv | tail +2 > uniquehits_ID.txt
+ 1113  head uniquehits_ID.txt 
+ 1114  pwd
+ 1115  ls -lt
+ 1116  cd fos_repo/
+ 1117  ls
+ 1118  cd fos_res_kleb/python_scripts/
+ 1119  ls
+ 1120  python3 compare_two_fastafiles.py > compare.txt
+ 1121  head compare
+ 1122  head compare.txt 
+ 1123  cd
+ 1124  man grep
+ 1125  cd fos.res.kleb/
+ 1126  grep -v -f uniquehits_ID.txt extractedseq_ID.txt > missing_ID.txt
+ 1127  head missing_ID.txt 
+ 1128  grep -v -f extractedseq_ID.txt uniquehits_ID.txt > missing_ID.txt
+ 1129  mv missing_ID.txt missing_ID_fromunique.txt 
+ 1130  grep -v -f uniquehits_ID.txt extractedseq_ID.txt > missing_ID_fromextracted.txt
+ 1131  ls -lt
+ 1132  grep -v -f extractedIDs_80.txt uniquehits_ID.txt > missing_ID_fromunique_80.txt
+ 1133  mv missing_ID_fromunique.txt missing_ID_fromunique_90.txt 
+ 1134  grep -v -f uniquehits_ID.txt extractedIDs_80.txt > missing_ID_fromextracted_80.txt
+ 1135  grep ">" fosgeneHits_fosA7.fasta | cut -d "/" -f7 | cut -d "." -f1 > extractedIDs_fosA7.txt
+ 1136  grep -v -f extractedIDs_fosA7.txt uniquehits_ID.txt > missing_ID_fromunique_fosA7.txt
+ 1137  cd
+ 1138  sudo apt-get install libfontconfig1-dev
+ 1139  cd ../../project/
+ 1140  ls -lt
+ 1141  pwd
+ 1142  ls -lt
+ 1143  cd Downloads/project/
+ 1144  ls
+ 1145  grep -c ">" *.fasta
+ 1146  grep ">" fosgenes_with_dups.fasta > fosgenes_IDs.txt
+ 1147  ls -lt
+ 1148  rm fosgenes_* 
+ 1149  ls -lt
+ 1150  seqkit rmdup -s < filtered_fosgenes.fasta > filtered_fosgenes_NR.fasta -D duplicate_info.txt -d duplicate_seqs.fasta
+ 1151  ls -lt
+ 1152  head -20 duplicate_info.txt 
+ 1153  grep ">" filtered_fosgenes.fasta > fosgenes_IDs.txt
+ 1154  grep -c ">" *.fasta
+ 1155  seqkit seq -w 0 filtered_fosgenes_NR.fasta 
+ 1156  seqkit seq -w 0 filtered_fosgenes_NR.fasta > filtered_fosgenes_NR_nogaps.fasta 
+ 1157  cd ../ncbi-blast-2.13.0+/bin/
+ 1158  ./blastn -query /home/iamke/Downloads/project/duplicate_seqs.fasta -subject /home/iamke/Downloads/project/filtered_fosgenes_NR.fasta -out fos_genes_dups.tsv -outfmt "6 qseqid sseqid pident mismatch qlen slen qstart qend sstart send length evalue bitscore"
+ 1159  ls -lt
+ 1160  mv fos_genes_dups.tsv /home/iamke/Downloads/project/
+ 1161  rstudio
+ 1162  cd
+ 1163  cat SecureW2_JoinNow.run 
+ 1164  ssh -l iamke m3.massive.org.au
+ 1165  history
+ 1166  grep -c ">" *.fasta 
+ 1167  conda activate fos.phylogeny
+ 1168  ls -lt
+ 1169  mafft filtered_fosgenes.fasta > filtered_fosgenes_aligned.fasta
+ 1170  FastTree -gtr -nt -gamma -log filtered_fosgenes_logfile filtered_fosgenes_aligned.fasta > filtered_fosgenes.nwk
+ 1171  history
+ 1172  fc -l 1889 2000 > history_project_2.txt
+ 1173  cat history_project_2.txt 
+ 1174  cd ..
+ 1175  cd ~/fos.res.kleb/fos_repo/fos_res_kleb/data/final_seq_data/
+ 1176  grep -c ">" *.fasta
+ 1177  conda activate fos.phylogeny
+ 1178  mafft --help
+ 1179  mafft-linsi fos_genes_final_clean.fasta > fos_genes_final_clean_aligned.fasta 
+ 1180  trimal -in fos_genes_final_clean_aligned.fasta -out fos_genes_final_clean_aligned_trimmed.fasta -fasta -gappyout
+ 1181  FastTree -gtr -nt -gamma -log fos_genes_final_logfile fos_genes_final_clean_aligned_trimmed.fasta > fos_genes_final.nwk
+ 1182  rstudio
+ 1183  history
+ 1184  ssh -l iamke m3.massive.org.au
+ 1185  cd ~/Downloads/ncbi-blast-2.13.0+/bin/
+ 1186  ls
+ 1187  ./blastn -query /home/iamke/fos_ncbi/fos_genes_fasta/fos_genes_NR.fasta -subject /home/iamke/fos_ncbi/fos_genes_fasta/fos_genes_CARD_Res_Kleb.fasta -out fos_genes_dupsornodups.tsv -outfmt "6 qseqid sseqid pident mismatch qlen slen qstart qend sstart send length evalue bitscore"
+ 1188  ls -lt
+ 1189  mv fos_genes_dupsornodups.tsv /home/iamke/fos_ncbi/fos_genes_fasta/
+ 1190  head fos_AA_dupsornodups.tsv 
+ 1191  cd ~/fos.res.kleb/fos_repo/fos_res_kleb/python_scripts/
+ 1192  ls
+ 1193  python3 trial.py > trial.txt
+ 1194  python3 trial.py
+ 1195  ls -lt
+ 1196  header fos_genes_all_db_clean.fasta 
+ 1197  head fos_genes_all_db_clean.fasta 
+ 1198  mv fos_genes_all_db_clean.fasta /home/iamke/fos_ncbi/fos_genes_fasta
+ 1199  cd
+ 1200  cd ~/Downloads/ncbi-blast-2.13.0+/bin/
+ 1201  cd
+ 1202  ssh -l iamke m3.massive.org.au
+ 1203  cd ~/fos.res.kleb/fos_repo/fos_res_kleb/data/final_seq_data/
+ 1204  pwd
+ 1205  cd ~/fos.res.kleb/
+ 1206  ls -lt
+ 1207  cd globusconnectpersonal-3.1.6/
+ 1208  ./globusconnectpersonal 
+ 1209  ls -lt
+ 1210  ls -alt
+ 1211  cd .config/
+ 1212  ls -alt
+ 1213  cd -
+ 1214  ls -alt
+ 1215  cd .local/
+ 1216  ls
+ 1217  cd bin/
+ 1218  ls
+ 1219  cd ../lib/
+ 1220  ls
+ 1221  cd ../etc
+ 1222  ls
+ 1223  cd ../ete3
+ 1224  ls
+ 1225  cd ../share/
+ 1226  ls
+ 1227  cd ~
+ 1228  ls -alt
+ 1229  cd .local/
+ 1230  ls -alt
+ 1231  ls lib/
+ 1232  ls lib/python3.10/
+ 1233  ls etc/
+ 1234  ls etc/jupyter/
+ 1235  ls etc/jupyter/nbconfig/
+ 1236  ls ete3
+ 1237  ls ete3/tools/
+ 1238  ls bin/
+ 1239  ls bin/nsdpy 
+ 1240  ls share/
+ 1241  rstudio
+ 1242  grep -c ">" *.fasta
+ 1243  conda activate fos.phylogeny
+ 1244  ls -lt
+ 1245  mafft fos_gene_hits_with_dups.fasta > fos_gene_hits_with_dups_aligned.fasta 
+ 1246  ls -lt
+ 1247  FastTree -gtr -nt -gamma -log fos_gene_hits_with_dups_logfile fos_gene_hits_with_dups_aligned.fasta 
+ 1248  Fasttree
+ 1249  fasttree
+ 1250  FastTree -gtr -nt -gamma -log fos_gene_hits_with_dups_logfile fos_gene_hits_with_dups_aligned.fasta > fos_gene_with_dups.nwk
+ 1251  rstudio
+ 1252  cd ~/globusconnectpersonal-3.1.6/
+ 1253  ./globusconnect
+ 1254  ./globusconnectpersonal 
+ 1255  cd
+ 1256  rstudio
+ 1257  cd fos_res_kleb/
+ 1258  git status
+ 1259  git add massive_job_scripts/
+ 1260  git commit 
+ 1261  cd python_scripts/
+ 1262  git status
+ 1263  cd ../data/
+ 1264  ls -lt
+ 1265  git status
+ 1266  git add RAxML_genes_100bs/
+ 1267  cd final_seq_data/
+ 1268  cd ../..
+ 1269  ls
+ 1270  cd r_scripts/
+ 1271  git status .
+ 1272  git add gen_phen.R 
+ 1273  git commit
+ 1274  git status
+ 1275  git status .
+ 1276  git add .
+ 1277  git commit .
+ 1278  git status .
+ 1279  cd ../python_scripts/
+ 1280  git status .
+ 1281  cd -
+ 1282  git push origin main
+ 1283  git status .
+ 1284  cd -
+ 1285  git log
+ 1286  cd -
+ 1287  git commit --amend .
+ 1288  git rebase -i HEAD~3
+ 1289  git rebase -i HEAD~3 .
+ 1290  cd -
+ 1291  git status .
+ 1292  git add filter_fosgenes.py 
+ 1293  git commit .
+ 1294  cd ..
+ 1295  git status
+ 1296  cd data/
+ 1297  git add Kleborate_only_fos_genes.xlsx 
+ 1298  git status
+ 1299  git commit -m "Edit gene names and IDs"
+ 1300  git status
+ 1301  cd final_seq_data/
+ 1302  git status .
+ 1303  git add fos_AA_final_clean.fasta 
+ 1304  git status .
+ 1305  git status 
+ 1306  git commit -m "Add amino acid sequences and change file name"
+ 1307  git status .
+ 1308  git add fos_genes_final_clean.fasta 
+ 1309  git commit -m "Add gene sequences and change fasta headers"
+ 1310  git status .
+ 1311  git add .
+ 1312  git status
+ 1313  git commit -m "Delete files"
+ 1314  git status 
+ 1315  cd ..
+ 1316  git status .
+ 1317  cd seq_data/
+ 1318  git status .
+ 1319  git push origin main
+ 1320  git pull origin main
+ 1321  git push origin main
+ 1322  git status .
+ 1323  git add fos_genes_card_res_nogaps.fasta fos_genes_final_with_IDs.fasta 
+ 1324  git status
+ 1325  git add fos_genes_ncbi_final.fasta fos_genes_ncbi_nogap.fasta fos_genes_ndspy_clean.fasta ../../python_scripts/.history/
+ 1326  git status .
+ 1327  git commit -m "Add fos genes fasta files"
+ 1328  git commit --amend
+ 1329  git status .
+ 1330  git add fos_genes_card_res.fasta 
+ 1331  git commit -m "Edit fasta header and add fos gene sequences"
+ 1332  git add fos_genes_ncbi.fasta 
+ 1333  git commit -m "Add fos gene sequences"
+ 1334  git push origin main
+ 1335  git commit --amend
+ 1336  git push origin main
+ 1337  git pull origin main
+ 1338  git push origin main
+ 1339  git status .
+ 1340  git add .
+ 1341  git commit -m "Delete file"
+ 1342  git push origin main
+ 1343  git status .
+ 1344  git status
+ 1345  cd ..
+ 1346  git status .
+ 1347  git add fosAA_metadata.tsv 
+ 1348  git status .
+ 1349  git commit -m "Edit Seq ID and Database columns"
+ 1350  git add lit_review.xlsx 
+ 1351  git commit -m "Add references"
+ 1352  git status .
+ 1353  git add .
+ 1354  git commit -m "Delete files"
+ 1355  git status .
+ 1356  git push origin main
+ 1357  cd ..
+ 1358  git status
+ 1359  git log 
+ 1360  git status 
+ 1361  cd
+ 1362  rstudio
+ 1363  cd fos.res.kleb/fos_repo/fos_res_kleb/r_scripts/
+ 1364  git status .
+ 1365  git add .
+ 1366  git commit -m "Change colour code"
+ 1367  git push origin main
+ 1368  cd
+ 1369  rstudio
+ 1370  cd Downloads/
+ 1371  ls -lt
+ 1372  pwd
+ 1373  cd data/fasta_files/
+ 1374  ls -lt
+ 1375  grep -c ">" *.fasta
+ 1376  pwd
+ 1377  cd globusconnectpersonal-3.1.6/
+ 1378  ./globusconnectpersonal 
+ 1379  ssh -l iamke m3.massive.org.au
+ 1380  cd fos.res.kleb/fos_repo/fos_res_kleb/python_scripts/
+ 1381  ls -lt
+ 1382  cd /home/iamke/fos.res.kleb/extracted_seq
+ 1383  ls -lt
+ 1384  python3 filter_fosgenes.py > missing.txt
+ 1385  python3 filter_fosgenes.py
+ 1386  ls -lt
+ 1387  python3 filter_fosgenes.py
+ 1388  ls -lt
+ 1389  python3 filter_fosgenes.py
+ 1390  ls -lt
+ 1391  python3 filter_fosgenes.py
+ 1392  ls -lt
+ 1393  grep -c ">" *.fasta
+ 1394  python3 filter_fosgenes.py
+ 1395  conda activate fasta.qc
+ 1396  seqkit rmdup -n <filtered_fosgenes.fasta> filtered_fosgenes_NR.fasta -D duplicate_info.txt -d duplicate_seqs.fasta
+ 1397  grep -c ">" *.fasta
+ 1398  conda deactivate
+ 1399  conda activate fos.phylogeny
+ 1400  mafft filtered_fosgenes_NR.fasta > filtered_fosgenes_NR_aligned.fasta
+ 1401  FastTree -gtr -nt -gamma -log filtered_fosgenes_NR_logfile filtered_fosgenes_NR_aligned.fasta > filtered_fosgenes_NR.nwk
+ 1402  cd
+ 1403  rstudio
+ 1404  cd ~/Downloads/
+ 1405  cd ncbi-blast-2.13.0+/bin/
+ 1406  ls
+ 1407  ./blastn -query /home/iamke/fos.res.kleb/extracted_seq/duplicate_sequences.fasta -subject /home/iamke/fos.res.kleb/extracted_seq/filtered_fosgenes_NR_seq.fasta -out fos_genes_seq_dups.tsv -outfmt "6 qseqid sseqid pident mismatch qlen slen qstart qend sstart send length evalue bitscore"
+ 1408  conda activate fasta.qc
+ 1409  seqkit rmdup -s <filtered_fosgenes_NR_ID.fasta> filtered_fosgenes_NR_seq.fasta -D duplicate_seq_info.txt -d duplicate_sequences.fasta
+ 1410  grep -c ">" *.fasta
+ 1411  conda deactivate
+ 1412  conda activate fos.phylogeny
+ 1413  mafft filtered_fosgenes_NR_seq.fasta > filtered_fosgenes_NR_seq_aligned.fasta
+ 1414  FastTree -gtr -nt -gamma -log filtered_fosgenes_NR_seq_logfile filtered_fosgenes_NR_seq_aligned.fasta > filtered_fosgenes_NR_seq.nwk
+ 1415  conda deactivate
+ 1416  pwd
+ 1417  grep -c ">" *.fasta
+ 1418  rstudio
+ 1419  cd Downloads/ncbi-blast-2.13.0+/bin/
+ 1420  ./blastn -query /home/iamke/fos.res.kleb/extracted_seq/filtered_fosgenes_NR_ID.fasta -subject /home/iamke/fos.res.kleb/extracted_seq/filtered_fosgenes_NR_seq.fasta -out fos_genes_seq_dups.tsv -outfmt "6 qseqid sseqid pident mismatch qlen slen qstart qend sstart send length evalue bitscore"
+ 1421  ls -lt
+ 1422  mv fos_genes_seq_dups.tsv fos_genes_seq_dups_2.tsv 
+ 1423  mv fos_genes_seq_dups_2.tsv /home/iamke/fos.res.kleb/extracted_seq
+ 1424  cd fos.res.kleb/fos_repo/fos_res_kleb/python_scripts/
+ 1425  ./globusconnectpersonal 
+ 1426  ssh -l iamke m3.massive.org.au
+ 1427  history
+ 1428  cd ~/Downloads/ncbi-blast-2.13.0+/bin/
+ 1429  ./blastn -query /home/iamke/fos.res.kleb/extracted_seq/filtered_fosgenes_NR_ID_2.fasta -subject /home/iamke/fos.res.kleb/extracted_seq/filtered_fosgenes_NR_seq_2.fasta -out fos_genes_seq_dups.tsv -outfmt "6 qseqid sseqid pident mismatch qlen slen qstart qend sstart send length evalue bitscore"
+ 1430  ls -lt
+ 1431  mv fos_genes_seq_dups.tsv /home/iamke/fos.res.kleb/extracted_seq
+ 1432  ./blastn -query /home/iamke/fos.res.kleb/extracted_seq/filtered_fosgenes_NR_seq_2_duplicate_sequences.fasta -subject /home/iamke/fos.res.kleb/extracted_seq/filtered_fosgenes_NR_seq_2.fasta -out fos_genes_seq_dups.tsv -outfmt "6 qseqid sseqid pident mismatch qlen slen qstart qend sstart send length evalue bitscore"
+ 1433  ls -lt
+ 1434  pwd
+ 1435  ls -lt
+ 1436  python3 filter_fosgenes.py
+ 1437  ls -lt
+ 1438  conda activate fasta.qc
+ 1439  seqkit rmdup -n <filtered_fosgenes.fasta> filtered_fosgenes_NR_ID_2.fasta -D filtered_fosgenes_NR_ID_2_duplicate_info.txt -d filtered_fosgenes_NR_ID_2_duplicate_seqs.fasta
+ 1440  grep -c ">" *.fasta
+ 1441  conda deactivate
+ 1442  seqkit rmdup -s <filtered_fosgenes_NR_ID.fasta> filtered_fosgenes_NR_seq.fasta -D duplicate_seq_info.txt -d duplicate_sequences.fasta
+ 1443  seqkit rmdup -s <filtered_fosgenes_NR_ID.fasta> filtered_fosgenes_NR_seq_2.fasta -D filtered_fosgenes_NR_seq_2_duplicate_seq_info.txt -d filtered_fosgenes_NR_seq_2_duplicate_sequences.fasta
+ 1444  grep -c ">" *.fasta
+ 1445  conda deactivate
+ 1446  conda activate fos.phylogeny
+ 1447  mafft filtered_fosgenes_NR_ID_2.fasta > filtered_fosgenes_NR_ID_2_aligned.fasta
+ 1448  FastTree -gtr -nt -gamma -log filtered_fosgenes_NR_ID_2_logfile filtered_fosgenes_NR_ID_2_aligned.fasta > filtered_fosgenes_NR_ID_2.nwk
+ 1449  mafft filtered_fosgenes_NR_seq_2.fasta > filtered_fosgenes_NR_seq_2_aligned.fasta
+ 1450  FastTree -gtr -nt -gamma -log filtered_fosgenes_NR_seq_2_logfile filtered_fosgenes_NR_seq_2_aligned.fasta > filtered_fosgenes_NR_seq_2.nwk
+ 1451  grep -c ">" *.fasta
+ 1452  rstudio
+ 1453  cd ../..
+ 1454  sudo dpkg -i discord-0.0.20.deb 
+ 1455  discord
+ 1456  rstudio
+ 1457  cd globusconnectpersonal-3.1.6/
+ 1458  ./globusconnectp
+ 1459  ./globusconnectpersonal 
+ 1460  rstudio
+ 1461  cd fos.res.kleb/fos_repo/fos_res_kleb/data/final_seq_data/
+ 1462  cd ../seq_data/
+ 1463  grep -c ">" *.fasta
+ 1464  cd -
+ 1465  grep -c ">" *.fasta
+ 1466  cd fos.res.kleb/fos_repo/fos_res_kleb/data
+ 1467  cd ../..
+ 1468  git status
+ 1469  git pull origin main
+ 1470  cd fos_res_kleb/
+ 1471  git pull origin main
+ 1472  cd r_scripts/
+ 1473  git status
+ 1474  git add fos_genome_tree_circular.R 
+ 1475  git status
+ 1476  git commit -m "Add R script for circular fos genome tree"
+ 1477  git status
+ 1478  git add summ_antibiogram.R 
+ 1479  git commit
+ 1480  git add summ_antibiogram.R 
+ 1481  git commit -m "Remove fosfomycin EUCAST testing standards"
+ 1482  git status
+ 1483  git add fos_blast_uniquehits.R 
+ 1484  git commit
+ 1485  git status
+ 1486  git add fos_gene_tree.R 
+ 1487  git commit
+ 1488  git status
+ 1489  git add fos_genome_tree.R 
+ 1490  git commit
+ 1491  git add fos_genome_tree.R 
+ 1492  git commit -m "Delete dataframe for genes"
+ 1493  git status
+ 1494  git add .
+ 1495  git status
+ 1496  git commit -m "Add history"
+ 1497  cd ../data/
+ 1498  ls
+ 1499  git add .
+ 1500  git status
+ 1501  git commit -m "Add new references"
+ 1502  git status
+ 1503  git push origin main
+ 1504  cd -
+ 1505  cd ..
+ 1506  git pull origin main
+ 1507  rstudio
+ 1508  ssh -l iamke m3.massive.org.au
+ 1509  rstudio
+ 1510  filezilla
+ 1511  ssh -l iamke m3.massive.org.au
+ 1512  cd ~/Downloads/
+ 1513  sudo dpkg -i code_1.72.2-1665614327_amd64.deb 
+ 1514  ls 
+ 1515  cd pycharm-community-2022.2.3/bin/
+ 1516  ./pycharm.sh 
+ 1517  ssh -l iamke m3.massive.org.au
+ 1518  ssh -l iamke m3.massive.org.au
+ 1519  rstudio
+ 1520  cd ~/ciprofloxacin/py_trial/
+ 1521  ls
+ 1522  python3 trial.py
+ 1523  cd ../gyra/
+ 1524  grep -c ">" *.fasta
+ 1525  pwd
+ 1526  ls -lt
+ 1527  pwd
+ 1528  python3 extract_no_mut_IDs.py 
+ 1529  grep -c ">" *.fasta
+ 1530  python3 extract_no_mut_IDs.py 
+ 1531  cd ciprofloxacin/py_trial/
+ 1532  python3 extract_no_mut_IDs.py 
+ 1533  seqkit seq -w 0 filtered_mutations.fasta > filtered_mutations_nogaps.fasta 
+ 1534  seqkit seq -g filtered_mutations.fasta > filtered_mutations_nogaps.fasta 
+ 1535  seqkit seq -w 0 filtered_mutations_nogaps.fasta > filtered_mutations_nogaps_2.fasta 
+ 1536  python3 extract_no_mut_IDs.py 
+ 1537  seqkit seq -g filtered_mutations.fasta > filtered_mutations_nogaps.fasta 
+ 1538  python3 trial.py 
+ 1539  cd ..
+ 1540  cd extract_no_mut_IDs/
+ 1541  pwd
+ 1542  ls -lt
+ 1543  conda fos.phylogeny
+ 1544  conda activate fos.phylogeny
+ 1545  conda deactivate
+ 1546  cd parc/
+ 1547  cd ../gyra/
+ 1548  python3 extract_no_mut_IDs.py 
+ 1549  cd ../parc/
+ 1550  python3 extract_no_mut_IDs.py 
+ 1551  grep -c ">" *.fasta
+ 1552  pwd
+ 1553  ls -lt
+ 1554  pwd
+ 1555  python3 extract_no_mut_IDs.py 
+ 1556  grep -c ">" *.fasta
+ 1557  python3 extract_no_mut_IDs.py 
+ 1558  cd ..
+ 1559  grep -c ">" *.fasta
+ 1560  grep -l ">" *.fasta
+ 1561  grep -w ">" *.fasta
+ 1562  grep -w ">" query_seq_parc.fasta 
+ 1563  grep -c ">" query_seq_parc.fasta 
+ 1564  grep -l ">" query_seq_parc.fasta 
+ 1565  man grep
+ 1566  grep -b ">" query_seq_parc.fasta 
+ 1567  grep -b query_seq_parc.fasta 
+ 1568  ls
+ 1569  cd extract_no_mut_IDs/
+ 1570  ls
+ 1571  python3 trial.py 
+ 1572  filezilla
+ 1573  cd
+ 1574  rstudio
+ 1575  cd Downloads/
+ 1576  sudo dpkg -i discord-0.0.21.deb 
+ 1577  cd 
+ 1578  sudo apt-get remove jalview
+ 1579  cd Downloads/
+ 1580  ls
+ 1581  cd ~/ciprofloxacin/extract_no_mut_IDs/parc/
+ 1582  ls -lt
+ 1583  python3 extract_no_mut_IDs.py 
+ 1584  grep -c ">" *.fasta
+ 1585  python3 extract_no_mut_IDs.py 
+ 1586  cd ~/Desktop/python_tutorial/
+ 1587  python3 helloworld.py 
+ 1588  python3
+ 1589  cd dow
+ 1590  cd ~/Downloads/
+ 1591  ls
+ 1592  ./jalview-2_11_2_0-linux_x64-java_8.sh
+ 1593  bash jalview-2_11_2_0-linux_x64-java_8.sh 
+ 1594  jalview
+ 1595  sudo apt remove jalview
+ 1596  ./prodigal.linux -i /home/iamke/ciprofloxacin/extract_no_mut_IDs/gyra/filtered_mutations_gyra.fasta -o /home/iamke/ciprofloxacin/extract_no_mut_IDs/gyra/filtered_mutations_gyra_gene.coords.gbk -a /home/iamke/ciprofloxacin/extract_no_mut_IDs/gyra/filtered_mutations_gyra_aa_seq.faa
+ 1597  ./prodigal.linux -i /home/iamke/ciprofloxacin/extract_no_mut_IDs/parc/filtered_mutations_parc.fasta -o /home/iamke/ciprofloxacin/extract_no_mut_IDs/parc/filtered_mutations_parc_gene.coords.gbk -a /home/iamke/ciprofloxacin/extract_no_mut_IDs/parc/filtered_mutations_parc_aa_seq.faa
+ 1598  ./prodigal.linux -i /home/iamke/ciprofloxacin/extract_no_mut_IDs/gyra/filtered_mutations_gyra.fasta -o /home/iamke/ciprofloxacin/extract_no_mut_IDs/gyra/filtered_mutations_gyra_gene.coords.gbk -a /home/iamke/ciprofloxacin/extract_no_mut_IDs/gyra/filtered_mutations_gyra_aa_seq.faa
+ 1599  ./prodigal.linux -i /home/iamke/ciprofloxacin/extract_no_mut_IDs/parc/filtered_mutations_parc_nogaps.fasta -o /home/iamke/ciprofloxacin/extract_no_mut_IDs/parc/filtered_mutations_parc_gene.coords.gbk -a /home/iamke/ciprofloxacin/extract_no_mut_IDs/parc/filtered_mutations_parc_aa_seq.faa
+ 1600  ./prodigal.linux -i /home/iamke/ciprofloxacin/extract_no_mut_IDs/gyra/filtered_mutations_gyra_nogaps.fasta -o /home/iamke/ciprofloxacin/extract_no_mut_IDs/gyra/filtered_mutations_gyra_gene.coords.gbk -a /home/iamke/ciprofloxacin/extract_no_mut_IDs/gyra/filtered_mutations_gyra_aa_seq.faa
+ 1601  ./prodigal.linux -h
+ 1602  cd ncbi-blast-2.13.0+/bin/
+ 1603  ./makeblastdb -in /home/iamke/ciprofloxacin/extract_no_mut_IDs/parc/filtered_mutations_parc_aa_seq.faa -dbtype prot
+ 1604  ./blastp -query /home/iamke/ciprofloxacin/extract_no_mut_IDs/parc/parc_ref_aa_seq.faa -db /home/iamke/ciprofloxacin/extract_no_mut_IDs/parc/filtered_mutations_parc_aa_seq.faa -out /home/iamke/ciprofloxacin/extract_no_mut_IDs/parc/parc_mut_aligned.tsv -outfmt "6 qseqid sseqid pident length mismatch qstart qend sstart send evalue bitscore"
+ 1605  ./makeblastdb -in /home/iamke/ciprofloxacin/extract_no_mut_IDs/gyra/filtered_mutations_gyra_aa_seq.faa -dbtype prot
+ 1606  ./blastp -query /home/iamke/ciprofloxacin/extract_no_mut_IDs/gyra/gyra_ref_aa_seq.faa -db /home/iamke/ciprofloxacin/extract_no_mut_IDs/gyra/filtered_mutations_gyra_aa_seq.faa -out /home/iamke/ciprofloxacin/extract_no_mut_IDs/gyra/gyra_mut_aligned.tsv -outfmt "6 qseqid sseqid pident length mismatch qstart qend sstart send evalue bitscore"
+ 1607  ls
+ 1608  ./blastp 
+ 1609  ./blastp -h
+ 1610  ./blastp -help
+ 1611  ./blastp -query /home/iamke/ciprofloxacin/extract_no_mut_IDs/gyra/gyra_ref_aa_seq.faa -db /home/iamke/ciprofloxacin/extract_no_mut_IDs/gyra/filtered_mutations_gyra_aa_seq.faa -out /home/iamke/ciprofloxacin/extract_no_mut_IDs/gyra/gyra_mut_aligned.tsv -max_target_seqs 5000 -outfmt "6 qseqid sseqid pident length mismatch qstart qend sstart send evalue bitscore"
+ 1612  ./blastp -query /home/iamke/ciprofloxacin/extract_no_mut_IDs/gyra/gyra_ref_aa_seq.faa -db /home/iamke/ciprofloxacin/extract_no_mut_IDs/gyra/filtered_mutations_gyra_aa_seq.faa -out /home/iamke/ciprofloxacin/extract_no_mut_IDs/gyra/gyra_mut_aligned.tsv -max_target_seqs 8000 -outfmt "6 qseqid sseqid pident length mismatch qstart qend sstart send evalue bitscore"
+ 1613  ./blastp -query /home/iamke/ciprofloxacin/extract_no_mut_IDs/parc/parc_ref_aa_seq.faa -db /home/iamke/ciprofloxacin/extract_no_mut_IDs/parc/filtered_mutations_parc_aa_seq.faa -out /home/iamke/ciprofloxacin/extract_no_mut_IDs/parc/parc_mut_aligned.tsv -max_target_seqs 8000 -outfmt "6 qseqid sseqid pident length mismatch qstart qend sstart send evalue bitscore"
+ 1614  ./blastp -query /home/iamke/ciprofloxacin/extract_no_mut_IDs/parc/parc_ref_aa_seq.faa -db /home/iamke/ciprofloxacin/extract_no_mut_IDs/parc/filtered_mutations_parc_aa_seq.faa -out /home/iamke/ciprofloxacin/extract_no_mut_IDs/parc/parc_mut_aligned.tsv -max_target_seqs 8500 -outfmt "6 qseqid sseqid pident length mismatch qstart qend sstart send evalue bitscore"
+ 1615  ./blastp -query /home/iamke/ciprofloxacin/extract_no_mut_IDs/parc/parc_ref_aa_seq.faa -db /home/iamke/ciprofloxacin/extract_no_mut_IDs/parc/filtered_mutations_parc_aa_seq.faa -out /home/iamke/ciprofloxacin/extract_no_mut_IDs/parc/parc_mut_aligned.tsv -max_target_seqs 1200 -outfmt "6 qseqid sseqid pident length mismatch qstart qend sstart send evalue bitscore"
+ 1616  ./blastp -query /home/iamke/ciprofloxacin/extract_no_mut_IDs/gyra/gyra_ref_aa_seq.faa -db /home/iamke/ciprofloxacin/extract_no_mut_IDs/gyra/filtered_mutations_gyra_aa_seq.faa -out /home/iamke/ciprofloxacin/extract_no_mut_IDs/gyra/gyra_mut_aligned.tsv -max_target_seqs 1200 -outfmt "6 qseqid sseqid pident length mismatch qstart qend sstart send evalue bitscore"
+ 1617  ./blastp -query /home/iamke/ciprofloxacin/extract_no_mut_IDs/gyra/gyra_ref_aa_seq.faa -db /home/iamke/ciprofloxacin/extract_no_mut_IDs/gyra/filtered_mutations_gyra_aa_seq.faa -out /home/iamke/ciprofloxacin/extract_no_mut_IDs/gyra/gyra_mut_aligned.tsv -max_target_seqs 8000 -outfmt "6 qseqid sseqid pident length mismatch qstart qend sstart send evalue bitscore"
+ 1618  ./prodigal.linux -i /home/iamke/ciprofloxacin/extract_no_mut_IDs/gyra/filtered_mutations_gyra_nogaps_NR.fasta -o /home/iamke/ciprofloxacin/extract_no_mut_IDs/gyra/filtered_mutations_gyra_gene.coords.gbk -a /home/iamke/ciprofloxacin/extract_no_mut_IDs/gyra/filtered_mutations_gyra_aa_seq.faa
+ 1619  cd ../..
+ 1620  ./prodigal.linux -i /home/iamke/ciprofloxacin/extract_no_mut_IDs/gyra/filtered_mutations_gyra_nogaps_NR.fasta -o /home/iamke/ciprofloxacin/extract_no_mut_IDs/gyra/filtered_mutations_gyra_gene.coords.gbk -a /home/iamke/ciprofloxacin/extract_no_mut_IDs/gyra/filtered_mutations_gyra_aa_seq.faa
+ 1621  cd -
+ 1622  ./makeblastdb -in /home/iamke/ciprofloxacin/extract_no_mut_IDs/gyra/filtered_mutations_gyra_aa_seq.faa -dbtype prot
+ 1623  ./blastp -query /home/iamke/ciprofloxacin/extract_no_mut_IDs/gyra/gyra_ref_aa_seq.faa -db /home/iamke/ciprofloxacin/extract_no_mut_IDs/gyra/filtered_mutations_gyra_aa_seq.faa -out /home/iamke/ciprofloxacin/extract_no_mut_IDs/gyra/gyra_mut_aligned.tsv -max_target_seqs 2500 -outfmt "6 qseqid sseqid pident length mismatch qstart qend sstart send evalue bitscore"
+ 1624  cd ../..
+ 1625  ./prodigal.linux -i /home/iamke/ciprofloxacin/extract_no_mut_IDs/parc/filtered_mutations_parc_nogaps_NR.fasta -o /home/iamke/ciprofloxacin/extract_no_mut_IDs/parc/filtered_mutations_parc_gene.coords.gbk -a /home/iamke/ciprofloxacin/extract_no_mut_IDs/parc/filtered_mutations_parc_aa_seq.faa
+ 1626  cd -
+ 1627  ./makeblastdb -in /home/iamke/ciprofloxacin/extract_no_mut_IDs/parc/filtered_mutations_parc_aa_seq.faa -dbtype prot
+ 1628  ./blastp -query /home/iamke/ciprofloxacin/extract_no_mut_IDs/parc/parc_ref_aa_seq.faa -db /home/iamke/ciprofloxacin/extract_no_mut_IDs/parc/filtered_mutations_parc_aa_seq.faa -out /home/iamke/ciprofloxacin/extract_no_mut_IDs/parc/parc_mut_aligned.tsv -max_target_seqs 2000 -outfmt "6 qseqid sseqid pident length mismatch qstart qend sstart send evalue bitscore"
+ 1629  cd
+ 1630  rstudio
+ 1631  cd ../parc/
+ 1632  python3 extract_parc_mismatch.py 
+ 1633  ssh -l iamke m3.massive.org.au
+ 1634  cd ~/Downloads/ncbi-blast-2.13.0+/bin/
+ 1635  ./blastn -query /home/iamke/ciprofloxacin/query_seq_gyra.fasta -subject /home/iamke/ciprofloxacin/ERR6293903_KP_NORM_75132.fasta -out /home/iamke/ciprofloxacin/KP_NORM_gyra_blast.tsv -outfmt "6 qseqid sseqid pident mismatch qlen slen qstart qend sstart send length evalue bitscore"
+ 1636  cd ~/Downloads/
+ 1637  ls
+ 1638  ./prodigal.linux -i /home/iamke/ciprofloxacin/extract_no_mut_IDs/gyra/filtered_mutations_gyra_nogaps_NR.fasta -o /home/iamke/ciprofloxacin/extract_no_mut_IDs/gyra/filtered_mutations_gyra_gene.coords.gbk -a /home/iamke/ciprofloxacin/extract_no_mut_IDs/gyra/filtered_mutations_gyra_aa_seq.faa
+ 1639  cd -
+ 1640  ./makeblastdb -in /home/iamke/ciprofloxacin/extract_no_mut_IDs/gyra/filtered_mutations_gyra_aa_seq.faa -dbtype prot
+ 1641  ./blastp -query /home/iamke/ciprofloxacin/extract_no_mut_IDs/gyra/gyra_ref_aa_seq.faa -db /home/iamke/ciprofloxacin/extract_no_mut_IDs/gyra/filtered_mutations_gyra_aa_seq.faa -out /home/iamke/ciprofloxacin/extract_no_mut_IDs/gyra/gyra_mut_aligned.tsv -max_target_seqs 2500 -outfmt "6 qseqid sseqid pident length mismatch qstart qend sstart send evalue bitscore"
+ 1642  conda info
+ 1643  conda env list
+ 1644  conda env remove --name blast rstudio.server seq.downloader
+ 1645  conda env remove --name blast
+ 1646  conda env remove --name rstudio.server
+ 1647  conda env remove --name seq.downloader
+ 1648  conda rename -n fasta.qc -d seq.qc
+ 1649  conda create --clone fasta.qc --name seq.qc
+ 1650  conda env remove --name fasta.qc
+ 1651  conda create --clone fos.phylogeny --name align.tree
+ 1652  conda env remove --name fos.phylogeny
+ 1653  conda activate align.tree
+ 1654  conda install -c conda-forge -c bioconda -c defaults prokka
+ 1655  prokka
+ 1656  which perl
+ 1657  which conda
+ 1658  echo $PATH | tr ":" "\n" | nl
+ 1659  conda install -c bioconda prokka
+ 1660  prokka
+ 1661  conda remove prokka
+ 1662  python --version
+ 1663  conda install -c biobuilds perl=5.2.2
+ 1664  which perl
+ 1665  perl --version
+ 1666  sudo apt update
+ 1667  sudo apt upgrade
+ 1668  conda deactivate
+ 1669  sudo apt update
+ 1670  apt list --upgradable
+ 1671  sudo apt upgrade
+ 1672  sudo apt-get install grub-efi-amd64-bin
+ 1673  sudo apt upgrade
+ 1674  conda activate align.tree
+ 1675  perl --version
+ 1676  conda install -c bioconda prokka
+ 1677  prokka
+ 1678  sudo apt-get install libdatetime-perl libxml-simple-perl libdigest-md5-perl git default-jre bioperl
+ 1679  sudo cpan Bio::Perl
+ 1680  git clone https://github.com/tseemann/prokka.git $HOME/prokka
+ 1681  $HOME/prokka/bin/prokka --setupdb
+ 1682  prokka
+ 1683  prokka --version
+ 1684  ls -lt
+ 1685  cd prokka/
+ 1686  ls -lt
+ 1687  cd bin
+ 1688  ls
+ 1689  prokka
+ 1690  ./prokka
+ 1691  ./prokka --outdir KP_NORM --prefix 75132 /home/iamke/ciprofloxacin/ERR6293903_KP_NORM_75132.fasta 
+ 1692  sudo apt-get install libidn.so.11
+ 1693  ls
+ 1694  cd ..
+ 1695  ls
+ 1696  cd binaries/
+ 1697  ls
+ 1698  cd linux/
+ 1699  ls
+ 1700  ./tbl2asn --version
+ 1701  cd ../..
+ 1702  cd -
+ 1703  sudo apt-get install libidn.x86_64
+ 1704  cd 
+ 1705  sudo apt-get install libidn.x86_64
+ 1706  sudo apt-get install libidn11:i386
+ 1707  cd -
+ 1708  ls
+ 1709  ./tbl2asn --version
+ 1710  sudo find / -name libidn.so.11
+ 1711  cd ~/ciprofloxacin/
+ 1712  cd extract_no_mut_IDs/gyra/
+ 1713  grep -c ">" filtered_mutations_gyra_aa_seq.faa
+ 1714  cd ~/ciprofloxacin/
+ 1715  ls -lt
+ 1716  pwd
+ 1717  history
+ 1718  history > history.txt
+ 1719  cd extract_no_mut_IDs/gyra/
+ 1720  code .
+ 1721  ls -lt
+ 1722  python3 extract_mismatch.py 
+ 1723  cd ../
+ 1724  cd ..
+ 1725  git init
+ 1726  git status
+ 1727  git config --global user.email "ianaamke@gmail.com"
+ 1728  git config --global user.name "Iana Amke"
+ 1729  git config init.defaultBranch main
+ 1730  git config --global color.ui auto
+ 1731  git config --get user.name
+ 1732  git config --get user.email
+ 1733  git clone git@github.com:IanaAmke/cipro_res_kleb.git
+ 1734  git remote -v
+ 1735  ls -lt
+ 1736  cd cipro_res_kleb/
+ 1737  git remote -v
+ 1738  git status
+ 1739  git add .
+ 1740  git status
+ 1741  git commit -m "Add files"
+ 1742  git status
+ 1743  git push origin main
+ 1744  rstudio
+ 1745  cd Downloads/
+ 1746  sudo dpkg -i protonvpn-stable-release_1.0.3_all.deb 
+ 1747  protonvpn
+ 1748  proton
+ 1749  sudo apt-get update
+ 1750  sudo apt-get install protonvpn
+ 1751  cd ~/Desktop/
+ 1752  ls -lt
+ 1753  python3 trial.py 
+ 1754  python3 trial_2.py 
+ 1755  rstudio
+ 1756  cd ~/ciprofloxacin/
+ 1757  ls -lt
+ 1758  pwd
+ 1759  rstudio
+ 1760  cd ~/ciprofloxacin/cipro_res_kleb
+ 1761  git status
+ 1762  git add data_files/
+ 1763  git status
+ 1764  git commit -m "Add missing IDs and mutations files"
+ 1765  git add cipro_res.rmd 
+ 1766  git commit -m "Add AMR analysis rmarkdown file"
+ 1767  git add upset_plots_flq_mut.R 
+ 1768  git commit 
+ 1769  git status
+ 1770  git add .
+ 1771  git status
+ 1772  git commit -m "Update mutations tsv file"
+ 1773  git status
+ 1774  git push origin main
+ 1775  git status
+ 1776  git pull origin main
+ 1777  git status
+ 1778  git add .
+ 1779  git status
+ 1780  git commit -m "Change colour palette and add bar plot"
+ 1781  git push origin main
+ 1782  cd
+ 1783  touch Qt-Creator.desktop
+ 1784  nano Qt-Creator.desktop 
+ 1785  mv Qt-Creator.desktop .local/share/applications/
+ 1786  cd .local/share/applications/
+ 1787  nano defaults.list 
+ 1788  nano mimeapps.list 
+ 1789  sudo nano mimeapps.list 
+ 1790  sudo nano defaults.list 
+ 1791  sudo nano mimeapps.list 
+ 1792  sudo update-mime-database /usr/share/mime
+ 1793  cd
+ 1794  cd Downloads/
+ 1795  ls -lt
+ 1796  tar -xzf keyboard-2.3.0.tar.gz 
+ 1797  ls -lt
+ 1798  cd keyboard-2.3.0/
+ 1799  ls
+ 1800  cat README.md 
+ 1801  cd -
+ 1802  tar -xzf framework-2.3.0.tar.gz 
+ 1803  ls -lt
+ 1804  cd framework-2.3.0/
+ 1805  ls
+ 1806  cat README.md 
+ 1807  sudo apt-get install qt5-default
+ 1808  mkdir build
+ 1809  cd build/
+ 1810  cmake -DCMAKE_INSTALL_PREFIX=/usr iamke
+ 1811  cmake -DCMAKE_INSTALL_PREFIX=/usr ..
+ 1812  cd ..
+ 1813  sudo apt-get install qt5
+ 1814  wget https://download.qt.io/new_archive/qt/5.7/5.7.0/qt-opensource-linux-x64-5.7.0.run
+ 1815  chmod +x qt-opensource-linux-x64-5.7.0.run ./qt-opensource-linux-x64-5.7.0.run
+ 1816  ./qt-opensource-linux-x64-5.7.0.run 
+ 1817  sudo apt-get install build-essential
+ 1818  sudo apt-get install libfontconfig1
+ 1819  sudo apt-get install mesa-common-dev
+ 1820  sudo apt-get install libglu1-mesa-dev -y
+ 1821  cd -
+ 1822  cmake -DCMAKE_INSTALL_PREFIX=/usr ..
+ 1823  rstudio
+ 1824  cd ciprofloxacin/cipro_res_kleb
+ 1825  git status
+ 1826  git add .
+ 1827  git commit 
+ 1828  git status
+ 1829  git push origin main
+ 1830  cd ciprofloxacin/cipro_res_kleb
+ 1831  git status
+ 1832  git add .
+ 1833  git commit -m "Add code chunk to calculate frequencies"
+ 1834  git push origin main
+ 1835  cd Downloads/
+ 1836  ls
+ 1837  grep -P '("|/)\S+/\S+' jalview-2_11_2_0-linux_x64-java_8.sh 
+ 1838  cd
+ 1839  cd /home/iamke/.local/
+ 1840  ls
+ 1841  ls et
+ 1842  ls etc/
+ 1843  ls bin/
+ 1844  ls ete3/
+ 1845  ls ete3/tools/
+ 1846  ls lib/
+ 1847  ls share/
+ 1848  ls share/applications/
+ 1849  cd share/applications/
+ 1850  ls
+ 1851  rm -rf install4j_1r1v8ws-jalviewg.desktop 
+ 1852  cd -
+ 1853  ls
+ 1854  cd share/
+ 1855  ls
+ 1856  cd ark/
+ 1857  ls
+ 1858  cd -
+ 1859  ls doc/
+ 1860  cd /home/iamke/
+ 1861  cd /home/iamke/.java/
+ 1862  ls
+ 1863  ls fonts/
+ 1864  ls fonts/17.0.4.1/
+ 1865  cd
+ 1866  rstudio
+ 1867  sudo apt-get remove rstudio
+ 1868  sudo apt-get remove R
+ 1869  sudo apt-get remove r-base-core
+ 1870  sudo apt update -qq
+ 1871  apt list --upgradable
+ 1872  sudo apt install --no-install-recommends software-properties-common dirmngr
+ 1873  wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | sudo tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc
+ 1874  sudo add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/"
+ 1875  sudo apt install --no-install-recommends r-base
+ 1876  R --version
+ 1877  cd Downloads/
+ 1878  sudo dpkg -i rstudio-2022.07.2-576-amd64.deb 
+ 1879  rstudio
+ 1880  cd ciprofloxacin/
+ 1881  cd cipro_res_kleb
+ 1882  git status
+ 1883  git add .
+ 1884  git commit -m "Create frequency dataframe and run prop.test"
+ 1885  cd ciprofloxacin/cipro_res_kleb
+ 1886  git status
+ 1887  git add .
+ 1888  git commit
+ 1889  git push origin main
+ 1890  rstudio
+ 1891  cd ciprofloxacin/cipro_res_kleb
+ 1892  git status
+ 1893  git add .
+ 1894  git commit
+ 1895  git status
+ 1896  git restore --staged cipro_res_IA.Rmd 
+ 1897  git status
+ 1898  git push origin main
+ 1899  git pull origin main
+ 1900  git add .
+ 1901  git commit
+ 1902  git status
+ 1903  git push origin main
+ 1904  git status
+ 1905  git add .
+ 1906  git status
+ 1907  git commit -m "Add cipro_res_IA.html"
+ 1908  git push origin main
+ 1909  git pull origin main
+ 1910  git status
+ 1911  grep -c ">" *.fasta
+ 1912  rstudio
+ 1913  ssh -l iamke m3.massive.org.au
+ 1914  ls -lt
+ 1915  ssh -l iamke m3.massive.org.au
+ 1916  rstudio
+ 1917  history
+ 1918  cd ciprofloxacin/cipro_
+ 1919  cd ciprofloxacin/cipro_res_kleb/
+ 1920  git status
+ 1921  cd
+ 1922  ssh -l iamke m3.massive.org.au
+ 1923  rstudio
+ 1924  cd Downloads/ncbi-blast-2.13.0+/
+ 1925  cd bin/
+ 1926  ls
+ 1927  ./blastp -help
+ 1928  cd
+ 1929  rstudio
+ 1930  cd ciprofloxacin/cipro_res_kleb/extracted_sequences/gyrA/
+ 1931  python3 filter_gyrA.py 
+ 1932  ssh -l iamke m3.massive.org.au
+ 1933  rstudio
+ 1934  ssh -l iamke m3.massive.org.au
+ 1935  rstudio
+ 1936  ssh -l iamke m3.massive.org.au
+ 1937  ssh -l iamke m3.massive.org.au
+ 1938  dconf reset -f /
+ 1939  sudo mv ~/.config/plasma-org.kde.plasma.desktop-appletsrc ~/.config/plasma-org.kde.plasma.desktop-appletsrc-old
+ 1940  reboot
+ 1941  ~/.local/share/applications/
+ 1942  cd ~/.local/share/applications/
+ 1943  ls -lht
+ 1944  cat mimeapps.list 
+ 1945  cat mimeinfo.cache 
+ 1946  cd ..
+ 1947  ls
+ 1948  cd icons/
+ 1949  ls
+ 1950  cd ..
+ 1951  ls
+ 1952  ls mime/
+ 1953  cd ~
+ 1954  cd /usr/share/icons
+ 1955  ls
+ 1956  cd ~
+ 1957  cd /usr/share
+ 1958  ls
+ 1959  ls pixmaps/
+ 1960  cd
+ 1961  cd opt/
+ 1962  ls
+ 1963  ls -a
+ 1964  cd ..
+ 1965  ls -alht
+ 1966  cd .icons/
+ 1967  ls
+ 1968  ls Layan-border-cursors/
+ 1969  cd //
+ 1970  cd -
+ 1971  cd ..
+ 1972  ls -alh
+ 1973  cd /home/iamke/.local/share/mime/packages/
+ 1974  ls -lt
+ 1975  rm -rf install4j_1r1v8ws-*
+ 1976  ls
+ 1977  cd /home/iamke/.local/share/mime/application/
+ 1978  ls -l
+ 1979  rm -rf x-jalview*
+ 1980  ls -l
+ 1981  history
+ 1982  ssh -l iamke m3.massive.org.au
+ 1983  rstudio
+ 1984  cd ciprofloxacin/cipro_res_kleb/extracted_sequences/
+ 1985  history
+ 1986  cd ..
+ 1987  history
+ 1988  cd
+ 1989  history
+ 1990  cd ciprofloxacin/
+ 1991  history
+ 1992  cd cipro_res_kleb/
+ 1993  ls
+ 1994  cd Downloads/
+ 1995  sudo dpkg -i discord-0.0.22.deb 
+ 1996  cd
+ 1997  ssh -l iamke m3.massive.org.au
+ 1998  rstudio
+ 1999  conda env list
+ 2000  conda rename -n seq.qc -d seq.process
+ 2001  n
+ 2002  conda rename -n seq.qc seq.process
+ 2003  cd miniconda3/envs/
+ 2004  conda rename -n seq.qc seq.process
+ 2005  cd
+ 2006  conda activate seq.qc
+ 2007  sudo apt-get install emboss
+ 2008  needle
+ 2009  conda deactivate
+ 2010  pip install tdqm
+ 2011  conda activate seq.qc
+ 2012  cd ciprofloxacin/cipro_res_kleb/extracted_sequences/
+ 2013  seqkit grep -r -p gyrA filtered_gyrA_parC_nogaps.fasta -o filtered_gyrA.fasta
+ 2014  seqkit grep -r -p parC filtered_gyrA_parC_nogaps.fasta -o filtered_parC.fasta
+ 2015  getorf -h
+ 2016  getorf -sequence filtered_gyrA_with_ref.fasta -outseq filtered_gyrA_with_ref_aligned.faa
+ 2017  getorf -sequence filtered_gyrA_with_ref.fasta -minsize 186 -methionine -outseq filtered_gyrA_with_ref_aligned.faa
+ 2018  getorf -sequence filtered_gyrA_with_ref.fasta -minsize 500 -methionine -outseq filtered_gyrA_with_ref_aligned.faa
+ 2019  getorf -sequence filtered_gyrA_with_ref.fasta -table 11 -minsize 500 -methionine -outseq filtered_gyrA_with_ref_aligned.faa
+ 2020  getorf -sequence filtered_gyrA_with_ref.fasta -table 11 -minsize 500 -find 1 -methionine Yes -outseq filtered_gyrA_with_ref_aligned.faa
+ 2021  clustal
+ 2022  clustalw
+ 2023  mafft
+ 2024  mafft filtered_gyrA_with_ref.fasta > filtered_gyrA_with_ref_align.fasta 
+ 2025  mafft gyra_blast_mismatch.faa > gyra_blast_mismatch_align.faa 
+ 2026  mafft --addfull gyra_ref_aa_seq.faa gyra_blast_mismatch_align.faa 
+ 2027  mafft --addfull gyra_ref_aa_seq.faa gyra_blast_mismatch_align.faa > gyra_blast_mismatch_align_with_ref.faa 
+ 2028  python3 mutation1.py 
+ 2029  python3 trial.py 
+ 2030  grep -c ">" *.faa
+ 2031* python3 trial.py > 
+ 2032  python3 trial.py 
+ 2033  history
+ 2034  history > history_2.txt
