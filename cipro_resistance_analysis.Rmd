@@ -1,0 +1,1282 @@
+---
+title: "Ciprofloxacin resistance in Klebsiella pneumoniae"
+author: "Iana Amke"
+date: "Last compiled on `r format(Sys.time(), '%d/%m/%y')`"
+output: 
+  html_document: 
+    df_print: paged
+    fig_width: 9
+    fig_height: 8
+    mode: selfcontained
+    highlight: pygments
+    theme: 
+      bootswatch: flatly
+      code_font:
+        google: "JetBrains Mono"
+editor_options: 
+  chunk_output_type: inline
+---
+<style type="text/css">
+.main-container {
+  max-width: 1600px !important;
+  margin-left: auto;
+  margin-right: auto;
+}
+</style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(dev = 'png', echo = TRUE, message = FALSE, warning = FALSE,
+                      cache = FALSE, fig.align = 'center')
+```
+
+```{r functions, include=FALSE}
+# Functions 
+# 1. upset_violin_plot to create violin + UpSet plots for AST measurements and fluoroquinolone resistance mechanisms
+
+# create violin + UpSet plots for AST measurements and fluoroquinolone resistance mechanisms
+upset_violin_plot <- function(df, x, y, z) {
+# df - dataframe; x - Flq resistance mechanism column; y - Laboratory typing method column
+# z - Testing.standard
+  require(dplyr, ggplot2, ggupset)
+  
+  # checks if lab typing method is MIC or disk diffusion 
+  if (grepl('MIC.*$', df[y])) {
+    # checks if testing standard is EUCAST or CLSI
+    if (grepl('EUCAST', df[z])) {
+      df %>%
+        group_by(strain, Measurement, Resistance.phenotype) %>% 
+        # !! sym() allows one to pass a column name as an argument
+        summarize(res_mech_list = list(!! sym(x))) %>%
+        ggplot(aes(res_mech_list, Measurement)) + geom_violin() + geom_count(aes(colour = Resistance.phenotype)) + 
+        # EUCAST cut-off of 1.0 mg/L is resistant
+        geom_hline(aes(yintercept = 1.0, linetype = "resistant"), alpha = 0.6, color = "black") +
+        # EUCAST cut-off of 0.25 mg/L is susceptible
+        geom_hline(aes(yintercept = 0.25, linetype = "susceptible"), alpha = 0.6, color = "black") +
+        labs(x = "Fluoroquinolone resistance determinants", y = "Ciprofloxacin MIC measurement (mg/L)", 
+             size = "Number of strains", linetype = "MIC breakpoints", colour = "Phenotype") +
+        # convert y-axis to log2 scale and labels to 3 dp
+        scale_y_continuous(trans = log2_trans(), breaks = 2^(-5:9), labels = function(x) round(as.numeric(x), digits = 3)) +
+        scale_linetype_manual(values = c("solid", "dotted")) +
+        scale_x_upset() +
+        theme_combmatrix(combmatrix.panel.line.size = 0.8)
+    } else {
+      df %>%
+        group_by(strain, Measurement, Resistance.phenotype) %>% 
+        # !! sym() allows one to pass a column name as an argument
+        summarize(res_mech_list = list(!! sym(x))) %>%
+        ggplot(aes(res_mech_list, Measurement)) + geom_violin() + geom_count(aes(colour = Resistance.phenotype)) + 
+        # CLSI cut-off of 1.0 mg/L is resistant
+        geom_hline(aes(yintercept = 1.0, linetype = "resistant"), alpha = 0.6, color = "black") +
+        # CLSI cut-off of 0.25 mg/L is susceptible
+        geom_hline(aes(yintercept = 0.25, linetype = "susceptible"), alpha = 0.6, color = "black") +
+        labs(x = "Fluoroquinolone resistance determinants", y = "Ciprofloxacin MIC measurement (mg/L)", 
+             size = "Number of strains", linetype = "MIC breakpoints", colour = "Phenotype") +
+        # convert y-axis to log2 scale and labels to 3 dp
+        scale_y_continuous(trans = log2_trans(), breaks = 2^(-5:9), labels = function(x) round(as.numeric(x), digits = 3)) +
+        scale_linetype_manual(values = c("solid", "dotted")) +
+        scale_x_upset() +
+        theme_combmatrix(combmatrix.panel.line.size = 0.8)
+    }
+  } else {
+    if (grepl('EUCAST', df[z])) {
+      df %>%
+        group_by(strain, Measurement, Resistance.phenotype) %>% 
+        summarize(res_mech_list = list(!! sym(x))) %>%
+        ggplot(aes(res_mech_list, Measurement)) + geom_violin() + geom_count(aes(colour = Resistance.phenotype)) + 
+        # EUCAST cut-off of 21mm is resistant
+        geom_hline(aes(yintercept = 21, linetype = "resistant"), alpha = 0.6, color = "black") +
+        # EUCAST cut-off of 25mm is susceptible
+        geom_hline(aes(yintercept = 25, linetype = "susceptible"), color = "black") +
+        labs(title = "Fluoroquinolone resistance determinant combinations\nat various disk diffusion measurements", x = 
+               "Fluoroquinolone resistance determinants", y = "Ciprofloxacin disk diffusion measurement (mm)", 
+             size = "Number of strains", linetype = "Disk diffusion breakpoints", colour = "Phenotype") +
+        scale_linetype_manual(values = c("solid", "dotted")) +
+        scale_x_upset() +
+        theme_combmatrix(combmatrix.panel.line.size = 0.8)
+    } else {
+      df %>%
+        group_by(strain, Measurement, Resistance.phenotype) %>% 
+        summarize(res_mech_list = list(!! sym(x))) %>%
+        ggplot(aes(res_mech_list, Measurement)) + geom_violin() + geom_count(aes(colour = Resistance.phenotype)) + 
+        # CLSI cut-off of 21mm is resistant
+        geom_hline(aes(yintercept = 21, linetype = "resistant"), alpha = 0.6, color = "black") +
+        # CLSI cut-off of 26mm is susceptible
+        geom_hline(aes(yintercept = 26, linetype = "susceptible"), color = "black") +
+        labs(title = "Fluoroquinolone resistance determinant combinations\nat various disk diffusion measurements", x = 
+               "Fluoroquinolone resistance determinants", y = "Ciprofloxacin disk diffusion measurement (mm)", 
+             size = "Number of strains", linetype = "Disk diffusion breakpoints", colour = "Phenotype") +
+        scale_linetype_manual(values = c("solid", "dotted")) +
+        scale_x_upset() +
+        theme_combmatrix(combmatrix.panel.line.size = 0.8)
+    }
+  }
+}
+
+# 2. upset_bar_plot to create percent stacked bar charts + UpSet plots for AST measurements and fluoroquinolone resistance mechanisms
+
+# create percent stacked barchart + UpSet plots for AST measurements and fluoroquinolone resistance mechanisms
+upset_bar_plot <- function(df, x) {
+# df - dataframe; x - Flq resistance mechanism column
+  
+  require(dplyr, ggplot2, ggupset)
+  
+  df %>%
+    group_by(strain, Measurement) %>% 
+    # !! sym() allows one to pass a column name as an argument
+    summarize(res_mech_list = list(!! sym(x)), Resistance.phenotype) %>%
+    ggplot(aes(res_mech_list, Measurement, fill = Resistance.phenotype)) + geom_bar(position="fill", stat="identity") +
+    labs(x = "Fluoroquinolone resistance determinants", y = "% phenotype",
+         fill = "Phenotype") +
+    scale_x_upset() +
+    theme_combmatrix(combmatrix.panel.line.size = 0.8)
+}
+
+# 3. group_res_mech to group resistance determinants
+
+# function to group some resistance determinants
+group_res_mech <- function(df, x) {
+# df - data frame; x - column(s) with resistance determinanats
+# {{ }} and := allows one to pass a column name as a function parameter
+  
+  require(dplyr)
+  
+  rare_res_qnr_genes <- c("qnrB7", "qnrE2", "qnrS2", "qnrVC1", "qnrVC6")
+
+  df %>%
+    # based on statistical analysis (chunk proportion), combine QRDR mutations to have just 4 types (GyrA-83, GyrA-87, ParC-80, ParC-84)
+    # except GyrA-87H which is found in one strain and is sensitive
+    mutate({{ x }} := replace({{ x }}, startsWith({{ x }}, "GyrA-83"), "GyrA-83")) %>%
+    mutate({{ x }} := case_when(startsWith({{ x }}, "GyrA-87") & {{ x }} != "GyrA-87H" ~ "GyrA-87",
+                                 TRUE ~ {{ x }})) %>%
+    mutate({{ x }} := replace({{ x }}, startsWith({{ x }}, "ParC-80"), "ParC-80")) %>%
+    mutate({{ x }} := replace({{ x }}, startsWith({{ x }}, "ParC-84"), "ParC-84")) %>%
+    # also combine the following acquired genes
+    mutate({{ x }} := replace({{ x }}, startsWith({{ x }}, "qepA2"), "qepA2")) %>%
+    mutate({{ x }} := replace({{ x }}, startsWith({{ x }}, "qnrA1"), "qnrA1")) %>%
+    mutate({{ x }} := replace({{ x }}, startsWith({{ x }}, "qnrB1"), "qnrB1")) %>%
+    mutate({{ x }} := replace({{ x }}, startsWith({{ x }}, "qnrB19"), "qnrB19")) %>%
+    mutate({{ x }} := replace({{ x }}, startsWith({{ x }}, "qnrB2"), "qnrB2")) %>%
+    mutate({{ x }} := replace({{ x }}, startsWith({{ x }}, "qnrS1"), "qnrS1")) %>%
+    mutate({{ x }} := replace({{ x }}, grepl(paste(rare_res_qnr_genes, collapse = "|"), {{ x }}), "rare_res_qnr"))
+}
+
+```
+
+# Preliminary analysis of sample data
+The data is made up of assembled *K. pneumoniae* genomes with matched antibiogram data. The first step of data analysis involved filtering for ciprofloxacin and mechanisms that contribute to fluoroquinolone resistance i.e. *gyrA* and *parC* mutations found in the Flq_mutations column.  
+
+Afterwards, the data was visualised using bar plots which showed sample count per dataset and sample count for each of the laboratory typing methods used i.e MIC broth and agar dilution and disk diffusion and violin plots in combination with UpSet plots which showed the distribution of fluoroquinolone mutations in the genomes being analysed. Disk diffusion and MIC measurements were also checked to make sure they were valid - all disk diffusion measurements were correct but there were MIC measurements that were invalid i.e. two strains in the Italy_MVK_MIC dataset with 0.12 mg/L and one in the Egli_MIC dataset with 0.75 mg/L MIC (broth dilution) measurements and 12 strains in the Parkhill dataset with 0.12 mg/L MIC (agar dilution) measurements. 
+
+## Load required libraries
+```{r}
+library(here)
+library(tidyverse)
+library(scales)
+library(ggupset)
+library(RColorBrewer)
+library(collapse)
+library(DT)
+library(naniar)
+library(data.table)
+library(rebus)
+```
+
+## Load antibiogram data and filter for ciprofloxacin
+```{r}
+# read antibiogram data
+antibiogram <- read.delim(file = "antibiogram_combined.tsv", 
+                                header = TRUE, sep = "\t")
+
+# filter for ciprofloxacin and select Flq_mutations column
+cipro_antibiogram <- antibiogram %>%
+  filter(Antibiotic == "ciprofloxacin") %>%
+  select(strain:ST, Flq_mutations, Antibiotic:Measurement.Round) %>%
+  mutate(Resistance.phenotype = case_when(grepl('MIC.*$', Laboratory.Typing.Method) & Measurement <= 0.25 ~ 
+                                            "susceptible",
+                                          grepl('MIC.*$', Laboratory.Typing.Method) & Testing.standard == 
+                                            "EUCAST" & Measurement > 0.5 ~ "resistant",
+                                          grepl('MIC.*$', Laboratory.Typing.Method) & Testing.standard == 
+                                            "CLSI" & Measurement >= 1 ~ "resistant",
+                                          Laboratory.Typing.Method == "Disk diffusion" & Testing.standard == 
+                                            "EUCAST" & Measurement >= 25 ~ "susceptible",
+                                          Laboratory.Typing.Method == "Disk diffusion" & Testing.standard == 
+                                            "EUCAST" & Measurement < 22 ~ "resistant",
+                                          Laboratory.Typing.Method == "Disk diffusion" & Testing.standard == 
+                                            "CLSI" & Measurement >= 26 ~ "susceptible",
+                                          Laboratory.Typing.Method == "Disk diffusion" & Testing.standard == 
+                                            "CLSI" & Measurement <= 21 ~ "resistant",
+                                          TRUE ~ "intermediate")) 
+
+#write_delim(cipro_antibiogram, file = "cipro_antibiogram.tsv", delim = "\t")
+```
+
+## Summary bar plots {.tabset .tabset-pills}
+### Sample count per dataset
+```{r}
+cipro_antibiogram %>%
+  group_by(index) %>%
+  ggplot(aes(x = index)) +
+  geom_bar(fill = "#ff8000", alpha = 0.6) +
+  geom_text(aes(label = ..count..), stat = "count", nudge_y = 60) +
+  labs(title = "Total sample count per dataset", y = "Total sample count", fill = "Lab typing method") +
+  theme(axis.title.x = element_blank(), axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+### Total sample counts vs measurements for different lab typing methods {.tabset .tabset-pills}
+#### MIC (broth dilution) {.tabset .tabset-pills}
+##### CLSI
+```{r}
+cipro_antibiogram %>%
+  group_by(Laboratory.Typing.Method) %>%
+  filter(Laboratory.Typing.Method == "MIC (broth dilution)") %>%
+  filter(Testing.standard == "CLSI") %>% 
+  ggplot(aes(x = factor(Measurement), fill = index)) + geom_bar() + 
+  # CLSI cut-off of 1.0 mg/L is resistant
+  geom_vline(aes(xintercept = 5, linetype = "resistant"), alpha = 0.6, color = "black") +
+  # CLSI cut-off of 0.25 mg/L is susceptible
+  geom_vline(aes(xintercept = 3, linetype = "susceptible"), color = "black") +
+  labs(title = "Total sample count at various MIC (broth dilution) measurements", x = "Measurement (mg/L)", y = "Frequency", fill = "Dataset", 
+       linetype = "MIC breakpoints") +
+  scale_linetype_manual(values = c("solid", "dotted")) 
+```
+
+##### EUCAST
+```{r}
+cipro_antibiogram %>%
+  group_by(Laboratory.Typing.Method) %>%
+  filter(Laboratory.Typing.Method == "MIC (broth dilution)") %>%
+  filter(Testing.standard == "EUCAST") %>% 
+  ggplot(aes(x = factor(Measurement), fill = index)) + geom_bar() + 
+  # EUCAST cut-off of 1.0 mg/L is resistant
+  geom_vline(aes(xintercept = 8, linetype = "resistant"), alpha = 0.6, color = "black") +
+  # EUCAST cut-off of 0.25 mg/L is susceptible
+  geom_vline(aes(xintercept = 5, linetype = "susceptible"), color = "black") +
+  labs(title = "Total sample count at various MIC (broth dilution) measurements", x = "Measurement (mg/L)", y = "Frequency", fill = "Dataset", 
+       linetype = "MIC breakpoints") +
+  scale_linetype_manual(values = c("solid", "dotted")) 
+```
+
+#### MIC (agar dilution)
+##### EUCAST
+```{r}
+# only EUCAST used as testing standard
+cipro_antibiogram %>%
+  group_by(Laboratory.Typing.Method) %>%
+  filter(Laboratory.Typing.Method == "MIC (agar dilution)") %>% 
+  ggplot(aes(x = factor(Measurement), fill = index)) + geom_bar() + 
+  # EUCAST cut-off of 1.0 mg/L is resistant
+  geom_vline(aes(xintercept = 6, linetype = "resistant"), alpha = 0.6, color = "black") +
+  # EUCAST cut-off of 0.25 mg/L is susceptible
+  geom_vline(aes(xintercept = 4, linetype = "susceptible"), color = "black") +
+  labs(title = "Total sample count at various MIC (agar dilution) measurements", x = "Measurement (mg/L)", y = "Frequency", fill = "Dataset", 
+       linetype = "MIC breakpoints") +
+  # round off x-axis labels to 2dp
+  scale_x_discrete(labels = function(x) round(as.numeric(x), digits = 2)) +
+  scale_linetype_manual(values = c("solid", "dotted")) 
+```
+
+#### Disk diffusion {.tabset .tabset-pills}
+##### CLSI
+```{r}
+cipro_antibiogram %>%
+  group_by(Laboratory.Typing.Method) %>%
+  filter(Laboratory.Typing.Method == "Disk diffusion") %>%
+  filter(Testing.standard == "CLSI") %>%
+  ggplot(aes(Measurement, fill = index)) + geom_bar() + 
+  # CLSI cut-off of 21mm is resistant
+  geom_vline(aes(xintercept = 21, linetype = "resistant"), color = "black") +
+  # CLSI cut-off of 26mm is susceptible
+  geom_vline(aes(xintercept = 26, linetype = "susceptible"), color = "black") +
+  labs(title = "Total sample count at various disk diffusion measurements", x = "Measurement (mm)", y = "Frequency", fill = "Dataset", 
+       linetype = "Disk diffusion \nbreakpoints") +
+  scale_linetype_manual(values = c("solid", "dotted"))
+```
+
+##### EUCAST
+```{r}
+cipro_antibiogram %>%
+  group_by(Laboratory.Typing.Method) %>%
+  filter(Laboratory.Typing.Method == "Disk diffusion") %>%
+  filter(Testing.standard == "EUCAST") %>%
+  ggplot(aes(Measurement, fill = index)) + geom_bar() + 
+  # EUCAST cut-off of 21mm is resistant
+  geom_vline(aes(xintercept = 21, linetype = "resistant"), color = "black") +
+  # CLSI cut-off of 25mm is susceptible
+  geom_vline(aes(xintercept = 25, linetype = "susceptible"), color = "black") +
+  labs(title = "Total sample count at various disk diffusion measurements", x = "Measurement (mm)", y = "Frequency", fill = "Dataset", 
+       linetype = "Disk diffusion \nbreakpoints") +
+  scale_linetype_manual(values = c("solid", "dotted"))
+```
+
+## UpSet plots visualising resistance mechanism combinations for the lab typing methods
+```{r}
+# combine Flq_mutations into one column
+cipro_res_mech <- cipro_antibiogram %>%
+  pivot_longer(Flq_mutations, names_to = "Flq.resistance.mech", 
+               values_to = "Resistance.mech.type") %>%
+  separate(Resistance.mech.type, into = c("type_A", "type_B", "type_C"), sep = "[;]")
+
+cipro_res_mech <- cipro_res_mech %>%
+  pivot_longer(cols = names(cipro_res_mech)[26:28], values_to = "Resistance.mech.type") %>%
+  drop_na(Resistance.mech.type) %>%
+  select(-name) 
+```
+
+### UpSet plots 
+#### Violin plots {.tabset .tabset-pills}
+##### MIC (broth dilution) {.tabset .tabset-pills}
+###### CLSI
+```{r fig.height=7, fig.width=7}
+cipro_res_mech %>%
+  filter(Laboratory.Typing.Method == "MIC (broth dilution)") %>%
+  filter(Testing.standard == "CLSI") %>%
+  upset_violin_plot("Resistance.mech.type", "Laboratory.Typing.Method", "Testing.standard") +
+  labs(title = "Fluoroquinolone resistance determinant combinations at various\nMIC (broth dilution) measurements")
+```
+
+###### EUCAST
+```{r fig.height=7, fig.width=7}
+cipro_res_mech %>%
+  filter(Laboratory.Typing.Method == "MIC (broth dilution)") %>%
+  filter(Testing.standard == "EUCAST") %>%
+  upset_violin_plot("Resistance.mech.type", "Laboratory.Typing.Method", "Testing.standard") +
+  labs(title = "Fluoroquinolone resistance determinant combinations at various\nMIC (broth dilution) measurements") 
+```
+
+##### MIC (agar dilution) 
+###### EUCAST
+```{r fig.width=7, fig.height=7}
+# only EUCAST used as testing standard
+cipro_res_mech %>%
+  filter(Laboratory.Typing.Method == "MIC (agar dilution)") %>%
+  upset_violin_plot("Resistance.mech.type", "Laboratory.Typing.Method", "Testing.standard") +
+  labs(title = "Fluoroquinolone resistance determinant combinations\nat various MIC (agar dilution) measurements") 
+```
+
+##### Disk diffusion {.tabset .tabset-pills}
+###### CLSI
+```{r fig.width=7, fig.height=7}
+cipro_res_mech %>%
+  filter(Laboratory.Typing.Method == "Disk diffusion") %>%
+  filter(Testing.standard == "CLSI") %>%
+  upset_violin_plot("Resistance.mech.type", "Laboratory.Typing.Method", "Testing.standard") 
+```
+
+###### EUCAST
+```{r fig.width=7, fig.height=7}
+cipro_res_mech %>%
+  filter(Laboratory.Typing.Method == "Disk diffusion") %>%
+  filter(Testing.standard == "EUCAST") %>%
+  upset_violin_plot("Resistance.mech.type", "Laboratory.Typing.Method", "Testing.standard")
+```
+
+From the violin plots, one can see that there are genomes with no mutations (1299/10448) that are resistant to ciprofloxacin. Those genomes were filtered out and saved as **cipro_res_no_mutations.tsv**. 
+
+```{r}
+# filter for resistant strains with no gyrA or parC mutations
+cipro_res_no_mut <- cipro_res_mech %>%
+  filter(Resistance.phenotype == "resistant") %>%
+  filter(Resistance.mech.type == "-")
+
+#write_delim(cipro_res_no_mut, file = "cipro_res_no_mutations.tsv", delim = "\t")
+```
+
+# Extraction of *gyrA* and *parC* gene sequences
+## BLAST analysis of the genomes
+Assembled *K. pneumoniae* genomes of the 26 datasets used in the analysis were retrieved from Massive M3 using the **copy_fasta.sh** job script. GyrA and ParC reference amino acid sequences were then retrieved from the Kleborate GitHub repo (https://github.com/katholt/Kleborate/blob/master/kleborate/resBLAST.py). TBLASTN was used to find nucleotide sequences of those amino acid sequences - GenBank accession number **AJ292307.1** for *gyrA* and **MZ242286.1** for *parC* - and the Translate tool on Expasy (https://web.expasy.org/translate/) was afterwards used to trim the nucleotide sequences so that the amino acid sequences produced matched those from Kleborate.
+
+The *gyrA* and *parC* reference nucleotide sequences were then combined into one FASTA file which was used as the query for BLASTN while the subjects were the genomes from the various datasets. This was run using **cipro_blast.sh** on Massive. The output contained all the blast hits for the two genes. To obtain the unique blast hits, **cipro_blast_unique_hits.sh** was run. All the unique hits from the different datasets were combined into one dataframe and a metadata file was used to convert run accession IDs into strain IDs. Thereafter, the unique hits dataframe was combined with the genomes + matched antibiogram dataframe (cipro_antibiogram) and this was used to filter out extracted *gyrA* and *parC* sequences in the next step. 
+
+```{r}
+# read unique hits data files for all ciprofloxacin datasets using the data.table package
+# and bind them by rows into one dataframe
+cipro_uniquehits <- list.files(path = "./cipro_blast_unique_hits", full.names = T, pattern = "*.tsv") 
+cipro_uniquehits <- do.call(rbind, lapply(cipro_uniquehits, read.delim, sep="\t"))
+
+# rename strain IDs to match genome IDs
+cipro_uniquehits <- cipro_uniquehits %>%
+  mutate(strain = str_replace(strain, "_NextSeq_500_paired_end_sequencing", "")) %>%
+  mutate(strain = str_replace(strain, "_Illumina_MiSeq_paired_end_sequencing", "")) %>%
+  mutate(strain = str_replace(strain, "#", "_")) %>%
+  mutate(strain = str_replace(strain, "KGVETS-", "")) %>%
+  mutate(strain = str_replace(strain, "KGVET-", "")) %>%
+  mutate(strain = str_replace(strain, "Klebsiella_pneumoniae_", "")) %>%
+  mutate(strain = str_replace(strain, "_Klebsiella_pneumoniae", "")) %>%
+  mutate(strain = str_replace(strain, "Klebsiella_variicola_", "")) %>%
+  mutate(strain = str_replace(strain, "Klebsiella_quasipneumoniae_", "")) %>%
+  mutate(strain = str_replace(strain, "_final", "")) %>%
+  mutate(strain = str_replace(strain, "_out", "")) %>%
+  mutate(strain = str_replace(strain, "_S.*_L555", "")) %>%
+  mutate(strain = case_when(grepl("^2019.*B$", strain) ~ str_sub(strain, 1, -2),
+                            TRUE ~ strain))
+
+# read and combine all metadata files
+kleb_sample_metadata <- list.files(path = "./cipro_res_kleb/metadata/datasets/", full.names = T, pattern = "*.tsv") %>%
+  lapply(read_delim) %>%
+  bind_rows
+
+# save kleb_sample_metadata to tsv file
+#write_delim(kleb_sample_metadata, file = "./cipro_res_kleb/metadata/kleb_sample_metadata.tsv", delim = "\t")
+
+# merge unique hits and metadata files to extract strain names
+cipro_uniquehits <- cipro_uniquehits %>%
+  left_join(kleb_sample_metadata, by = c("strain" = "run_accession")) %>%
+  mutate(sample_alias = ifelse(is.na(sample_alias), strain, sample_alias)) %>%
+  select(- strain) %>%
+  relocate(sample_alias, .before = query.gene) 
+
+#write_delim(cipro_uniquehits, file = "cipro_uniquehits.tsv", delim = "\t")
+
+# merge cipro_uniquehits and cipro_antibiogram and remove strains with assembled genomes
+# but no matched antibiogram data
+cipro_antibiogram_uniquehits <- cipro_antibiogram %>%
+  left_join(cipro_uniquehits, by = c("strain" = "sample_alias")) %>%
+  relocate(query.gene:coverage, .after = Flq_mutations) %>%
+  drop_na(species) 
+
+# strains with antibiogram data but no genomes
+cipro_antibiogram_no_genomes <- cipro_antibiogram_uniquehits %>%
+  filter(is.na(contig))
+
+#write_delim(cipro_antibiogram_no_genomes, file = "cipro_antibiogram_no_genomes.tsv", delim = "\t")
+
+# remove strains with no genome sequences i.e. strains with antibiogram data but no genomes
+cipro_antibiogram_uniquehits <- cipro_antibiogram_uniquehits %>%
+  drop_na(contig)
+
+# save cipro_antibiogram_uniquehits to tsv file
+#write_delim(cipro_antibiogram_uniquehits, file = "cipro_antibiogram_uniquehits.tsv", delim = "\t")
+```
+
+## Extraction of *gyrA* and *parC* nucleotide sequences
+*gyrA* and *parC* gene sequences were then extracted using **extract_blast_gyra.sh** and **extract_blast_parc.sh** job scripts respectively using the default cut-off for length (50%). Various identity cut-offs were used to extract *gyrA* and *parC* nucleotide sequences for all the genomes with matched antibiogram data and **filter_gyrA_parC.py** was used to check whether the gene sequences were extracted for all genomes, by running **filter_gyrA_parC.sh** on Massive, after manually editing the resulting fasta file headers as follows: .fasta contig -> .fasta_contig e.g. .fasta 6 -> .fasta_6. A cut-off of 95% was first used followed by a cut-off of 90% was used and finally an identity cut-off of 80%. The headers for the filtered fasta file **filtered_gyrA_parC.fasta** were renamed in the following pattern: genome ID_gene name_contig number. The *gyrA* sequence of **KP_NORM_BLD_2011_75132** was added manually (after querying the genome against the reference using BLASTN) as it was not picked up by the **extract_blast_gyra.sh** job script.
+
+Gaps were then removed from **filtered_gyrA_parC.fasta** using `seqkit seq -g filtered_gyrA_parC.fasta > filtered_gyrA_parC_nogaps.fasta` and the presence of any duplicated IDs was checked using `seqkit rmdup -n < filtered_gyrA_parC_nogaps.fasta > filtered_gyrA_parC_nogaps_NR.fasta -D filtered_gyrA_parC_nogaps_NR_duplicate_info.txt -d filtered_gyrA_parC_nogaps_NR_duplicate_seqs.fasta`. *gyrA* and *parC* gene sequences were then separated using `seqkit grep -r -p gyrA filtered_gyrA_parC_nogaps_NR.fasta -o filtered_gyrA.fasta` and `seqkit grep -r -p parC filtered_gyrA_parC_nogaps_NR.fasta -o filtered_parC.fasta` respectively to obtain **filtered_gyrA.fasta** and **filtered_parC.fasta** as output files. 
+
+## Translation of nucleotide sequences
+Prodigal was run to translate the *gyrA* and *parC* nucleotide sequences into amino acid sequences using the following commands respectively: `prodigal -i filtered_gyrA.fasta -o filtered_gyrA_gene.coords.gbk -a filtered_gyrA_aa.faa` and `prodigal -i filtered_parC.fasta -o filtered_parC_gene.coords.gbk -a filtered_parC_aa.faa`.
+
+After running Prodigal, BLASTP was run on Massive using **blast_gyra.sh** and **blast_parc.sh** whereby **filtered_gyrA_aa.faa** and **filtered_parC_aa.faa** were queried against **gyra_ref_aa_seq.faa** and **parc_ref_aa_seq.faa** to get blast outputs with the best hits, **gyrA_blast.tsv** and **parC_blast.tsv**. The amino acid sequences of the best hits were extracted using **extract_gyra_blast.py** and **extract_parc_blast.py** and saved as **gyra_blast.faa** and **parc_blast.faa** respectively. The GyrA amino acid sequence of **KP_NORM_BLD_2011_75132** was added manually to the **gyra_blast.faa** file by first translating the nucleotide sequence using the Translate tool on Expasy - 3'5' frame 1 was chosen. 
+
+## Alignment to GyrA and ParC reference sequences
+**parc_blast.faa** and **gyra_blast.faa** were then aligned to the reference sequences using mafft and the reference sequences were removed from the resulting alignment files: `mafft parc_blast.faa > parc_blast_align.faa` and `mafft gyra_blast.faa > gyra_blast_align.faa` to first align the sequences then `mafft --addfull parc_ref_aa_seq.faa parc_blast_align.faa > parc_blast_align_with_ref.faa` and `mafft --addfull gyra_ref_aa_seq.faa gyra_blast_align.faa > gyra_blast_align_with_ref.faa` to align them to the reference. Afterwards, strains with WT GyrA/ParC, those with mutations in the proteins and with truncated amino acid sequences were summarised using **gyrA_mismatch_pos.py** and **parC_mismatch_pos.py**. The mutations, obtained from **gyrA_mutations.csv** and **parC_mutations.csv**, were then compared to the Kleborate output and mutations not in Kleborate but fall within the quinolone resistance-determining region (QRDR) i.e. position 67-106 for GyrA and 63-102 for ParC were saved in **mutations_not_in_kleborate.tsv**. Mutations different from those picked up by Kleborate were marked with a double asterisk (**).
+
+```{r results='hide'}
+# read GyrA mutations file
+gyra_mutations <- read.csv("cipro_res_kleb/extracted_sequences/gyrA_mutations.csv", header = TRUE)
+
+# select  sequence ID and mutations columns and edit sequence IDs to match strain IDs
+gyra_mutations <- gyra_mutations %>%
+  select(Sequence.ID, Mutations) %>%
+  mutate(Sequence.ID = str_replace(Sequence.ID, "_gyrA_[0-9]+_[0-9]+$", "")) %>%
+  mutate(Sequence.ID = str_replace(Sequence.ID, "_gyrA_NODE.*$", "")) %>%
+  rename("strain" = "Sequence.ID", "gyra_mutations" = "Mutations")
+
+# read ParC mutations file
+parc_mutations <- read.csv("cipro_res_kleb/extracted_sequences/parC_mutations.csv", header = TRUE)
+
+# select  sequence ID and mutations columns and edit sequence IDs to match strain IDs
+parc_mutations <- parc_mutations %>%
+  select(Sequence.ID, Mutations) %>%
+  mutate(Sequence.ID = str_replace(Sequence.ID, "_parC_[0-9]+_[0-9]+$", "")) %>%
+  mutate(Sequence.ID = str_replace(Sequence.ID, "_parC_chromosome_[0-9]+$", "")) %>%
+  mutate(Sequence.ID = str_replace(Sequence.ID, "_parC_NODE.*$", "")) %>%
+  rename("strain" = "Sequence.ID", "parc_mutations" = "Mutations")
+
+# separate Flq_mutations into individual columns
+kleborate_mutations <- cipro_antibiogram %>%
+  select(strain, Flq_mutations) %>%
+  separate(Flq_mutations, into = c("mut_A", "mut_B", "mut_C"), sep = "[;]") 
+
+# create columns for GyrA and ParC mutations  
+kleborate_mutations <- kleborate_mutations %>%
+  mutate(gyra_mutations = case_when(grepl("^GyrA", mut_A) & is.na(mut_B) ~
+                                      paste(mut_A),
+                                    grepl("^GyrA", mut_A) & grepl("^GyrA", mut_B) ~
+                                      paste(mut_A, mut_B, sep = ";"),
+                                    grepl("^GyrA", mut_A) & grepl("^ParC", mut_B) ~
+                                      paste(mut_A))) %>%
+  mutate(parc_mutations = case_when(grepl("^ParC", mut_B) & is.na(mut_C) ~
+                                      paste(mut_B),
+                                    grepl("^GyrA", mut_A) & grepl("^GyrA", mut_B) & grepl("^ParC", mut_C) ~
+                                      paste(mut_C))) %>%
+  replace_na(list(gyra_mutations = "-", parc_mutations = "-"))
+
+# compare kleborate mutations with gyra and parc mutations
+# combine kleborate_mutations with gyra_mutations and parc_mutations
+combined_mutations <- kleborate_mutations %>%
+  left_join(gyra_mutations, by = "strain", suffix = c("_kleb", "_extract")) %>%
+  left_join(parc_mutations, by = "strain", suffix = c("_kleb", "_extract")) %>%
+  relocate(gyra_mutations_extract, .after = gyra_mutations_kleb) %>%
+  replace_na(list(gyra_mutations_extract = "-", parc_mutations_extract = "-"))
+
+# compare _kleb and _extract columns and bind logical output to combined_mutations
+gyra_compare <- combined_mutations$gyra_mutations_kleb == combined_mutations$gyra_mutations_extract
+parc_compare <- combined_mutations$parc_mutations_kleb == combined_mutations$parc_mutations_extract
+
+combined_mutations <- combined_mutations %>%
+  cbind(as.data.frame(gyra_compare), as.data.frame(parc_compare)) %>%
+  relocate(gyra_compare, .after = gyra_mutations_extract)
+
+# find which mutations are not in the Kleborate output
+gyra_not_in_kleb <- combined_mutations %>%
+  filter(gyra_compare == FALSE) %>%
+  filter(gyra_mutations_extract != "-") %>%
+  select(strain, gyra_mutations_kleb:gyra_compare)
+
+parc_not_in_kleb <- combined_mutations %>%
+  filter(parc_compare == FALSE) %>%
+  filter(parc_mutations_extract != "-") %>%
+  select(strain, parc_mutations_kleb:parc_compare)
+
+# find mutations in the QRDR region i.e. between position 67 and 106 for GyrA and position 63 and
+# 102 for ParC
+# first for GyrA
+gyra_in_qrdr <- gyra_not_in_kleb %>%
+  select(strain, gyra_mutations_extract) %>%
+  separate(gyra_mutations_extract, into = c("mut_A", "mut_B", "mut_C", "mut_D", "mut_E", "mut_F", "mut_G", "mut_H", "mut_I"), 
+           sep = "[;]")
+
+# number_range() allows one to set number range as regex
+(gyra_qrdr_range <- number_range(67, 106))
+
+gyra_in_qrdr <- gyra_in_qrdr %>%
+  mutate(gyra_mutations = case_when(grepl(gyra_qrdr_range, mut_A) & is.na(mut_B) ~ paste(mut_A),
+                                    grepl(gyra_qrdr_range, mut_A) & grepl(gyra_qrdr_range, mut_B) & is.na(mut_C) ~ 
+                                      paste(mut_A, mut_B, sep = ";"),
+                                    grepl(gyra_qrdr_range, mut_A) & grepl(gyra_qrdr_range, mut_B) & grepl(gyra_qrdr_range, mut_C) &
+                                    grepl(gyra_qrdr_range, mut_D) ~ paste(mut_A, mut_B, mut_C, mut_D, mut_E, mut_F, mut_G, mut_H, mut_I, sep = ";"))) %>%
+  replace_na(list(gyra_mutations = "-")) %>%
+  select(strain, gyra_mutations) %>%
+  filter(gyra_mutations != "-")
+
+# now for ParC
+parc_in_qrdr <- parc_not_in_kleb %>%
+  select(strain, parc_mutations_extract) %>%
+  separate(parc_mutations_extract, into = c("mut_A", "mut_B"), sep = "[;]")
+
+(parc_qrdr_range <- number_range(63, 102))
+
+parc_in_qrdr <- parc_in_qrdr %>%
+  mutate(parc_mutations = case_when(grepl(parc_qrdr_range, mut_A) & is.na(mut_B) ~ paste(mut_A),
+                                    grepl(parc_qrdr_range, mut_A) & grepl(parc_qrdr_range, mut_B) ~ 
+                                      paste(mut_A, mut_B, sep = ";"))) %>%
+  replace_na(list(parc_mutations = "-")) %>%
+  select(strain, parc_mutations) %>%
+  filter(parc_mutations != "-")
+
+# then combine GyrA and ParC
+mutations_not_in_kleborate <- gyra_in_qrdr %>%
+  full_join(parc_in_qrdr, by = "strain") %>%
+  mutate(Flq_mutations = case_when(grepl("^GyrA", gyra_mutations) & grepl("^ParC", parc_mutations) ~ 
+                                     paste(gyra_mutations, parc_mutations, sep = ";"), 
+                                   grepl("^GyrA", gyra_mutations) & is.na(parc_mutations) ~ 
+                                     paste(gyra_mutations),
+                                   grepl("^ParC", parc_mutations) & is.na(gyra_mutations) ~
+                                     paste(parc_mutations))) %>%
+  select(- c("gyra_mutations", "parc_mutations"))
+
+#write_delim(mutations_not_in_kleborate, file = "mutations_not_in_kleborate.tsv", delim = "\t")
+```
+
+# Subsequent analysis of resistant strains and STs
+Following data cleaning, preliminary analysis, and extraction of GyrA and ParC mutations, mutations in the two proteins that had not been included in the Kleborate output were added to cipro_antibiogram and the Flq_acquired and Omp_mutations columns were also included in subsequent data analysis - some strains were resistant but had no mutations in GyrA or ParC therefore acquired fluoroquinolone resistance genes or mutations in the pores (outer membrane proteins (Omp)) might be contributing to their resistant phenotypes.
+
+Strains with invalid MIC measurements were filtered out from the antibiogram data and the summary bar plots were created again with the updated dataframe. 
+
+```{r}
+# read antibiogram data again and filter for ciprofloxacin
+antibiogram <- read.delim(file = "antibiogram_combined.tsv", 
+                                header = TRUE, sep = "\t")
+
+# edit: remove Omp mutations from analysis as based on violin + upset plots, they
+# do not seem to contribute to ciprofloxacin resistance
+cipro_antibiogram <- antibiogram %>%
+  filter(Antibiotic == "ciprofloxacin") %>%
+  select(strain:ST, Flq_mutations, Flq_acquired, Antibiotic:Measurement.Round) %>%
+  mutate(Resistance.phenotype = case_when(grepl('MIC.*$', Laboratory.Typing.Method) & Measurement <= 0.25 ~ 
+                                            "susceptible",
+                                          grepl('MIC.*$', Laboratory.Typing.Method) & Testing.standard == 
+                                            "EUCAST" & Measurement > 0.5 ~ "resistant",
+                                          grepl('MIC.*$', Laboratory.Typing.Method) & Testing.standard == 
+                                            "CLSI" & Measurement >= 1 ~ "resistant",
+                                          Laboratory.Typing.Method == "Disk diffusion" & Testing.standard == 
+                                            "EUCAST" & Measurement >= 25 ~ "susceptible",
+                                          Laboratory.Typing.Method == "Disk diffusion" & Testing.standard == 
+                                            "EUCAST" & Measurement < 22 ~ "resistant",
+                                          Laboratory.Typing.Method == "Disk diffusion" & Testing.standard == 
+                                            "CLSI" & Measurement >= 26 ~ "susceptible",
+                                          Laboratory.Typing.Method == "Disk diffusion" & Testing.standard == 
+                                            "CLSI" & Measurement <= 21 ~ "resistant",
+                                          TRUE ~ "intermediate")) %>%
+  # filter out strains with measurement of 0.12 and 0.75 (no such MIC measurements)
+  filter(Measurement != 0.12 & Measurement != 0.75)
+
+#write_delim(cipro_antibiogram, file = "cipro_antibiogram.tsv", delim = "\t")
+
+# add mutations not in Kleborate output to cipro_antibiogram
+# read mutations file
+no_mut_kleborate <- read.delim(file = "mutations_not_in_kleborate.tsv",
+                               header = TRUE, sep = "\t")
+
+# combine antibiogram with mutations not in kleborate data file
+cipro_antibiogram <- cipro_antibiogram %>%
+  left_join(no_mut_kleborate, by = c("strain")) %>%
+  mutate(Flq_mutations = case_when(Flq_mutations.y %in% NA ~ Flq_mutations.x, 
+                                   Flq_mutations.x == "-" & Flq_mutations.y %in% NA ~ Flq_mutations.x,
+                                   Flq_mutations.x == "-" ~ Flq_mutations.y,
+                                   Flq_mutations.x != "-" & !is.na(Flq_mutations.y) & !Flq_mutations.x %in% Flq_mutations.y ~
+                                     paste(Flq_mutations.x, Flq_mutations.y, sep = ";"),
+                                   TRUE ~ Flq_mutations.x)) %>%
+  select(- c(Flq_mutations.x, Flq_mutations.y)) %>%
+  relocate(Flq_mutations, .after = ST)
+
+# separate mutations and check for duplicates then combine them again into the Flq_mutations column
+cipro_antibiogram <- cipro_antibiogram %>%
+  pivot_longer(Flq_mutations, names_to = "Flq.resistance.mech", 
+               values_to = "Resistance.mech.type") %>%
+  separate(Resistance.mech.type, into = c("type_A", "type_B", "type_C", "type_D", "type_E", "type_F", "type_G", "type_H", "type_I"), 
+           sep = "[;]")
+
+cipro_antibiogram <- cipro_antibiogram %>%
+  pivot_longer(cols = names(cipro_antibiogram)[27:35], values_to = "Resistance.mech.type") %>%
+  drop_na(Resistance.mech.type) %>%
+  select(-name) %>%
+  filter(!duplicated(cbind(strain, Resistance.mech.type))) %>%
+  pivot_wider(names_from = Flq.resistance.mech, values_from = Resistance.mech.type,
+              values_fn = function(x) paste(x, collapse=";")) %>%
+  relocate(Flq_mutations, .before = Flq_acquired)
+```
+
+## Summary bar plots {.tabset .tabset-pills}
+### Sample count per dataset
+```{r}
+cipro_antibiogram %>%
+  group_by(index) %>%
+  ggplot(aes(x = index)) +
+  geom_bar(fill = "#ff8000", alpha = 0.6) +
+  geom_text(aes(label = ..count..), stat = "count", nudge_y = 60) +
+  labs(title = "Total sample count per dataset", y = "Total sample count", fill = "Lab typing method") +
+  theme(axis.title.x = element_blank(), axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+### Total sample counts vs measurements for different lab typing methods {.tabset .tabset-pills}
+#### MIC (broth dilution) {.tabset .tabset-pills}
+##### CLSI
+```{r}
+cipro_antibiogram %>%
+  group_by(Laboratory.Typing.Method) %>%
+  filter(Laboratory.Typing.Method == "MIC (broth dilution)") %>%
+  filter(Testing.standard == "CLSI") %>% 
+  ggplot(aes(x = factor(Measurement), fill = index)) + geom_bar() + 
+  # CLSI cut-off of 1.0 mg/L is resistant
+  geom_vline(aes(xintercept = 5, linetype = "resistant"), alpha = 0.6, color = "black") +
+  # CLSI cut-off of 0.25 mg/L is susceptible
+  geom_vline(aes(xintercept = 3, linetype = "susceptible"), color = "black") +
+  labs(title = "Total sample count at various MIC (broth dilution) measurements", x = "Measurement (mg/L)", y = "Frequency", fill = "Dataset", 
+       linetype = "MIC breakpoints") +
+  scale_linetype_manual(values = c("solid", "dotted")) 
+```
+
+##### EUCAST
+```{r fig.height=6}
+cipro_antibiogram %>%
+  group_by(Laboratory.Typing.Method) %>%
+  filter(Laboratory.Typing.Method == "MIC (broth dilution)") %>%
+  filter(Testing.standard == "EUCAST") %>% 
+  ggplot(aes(x = factor(Measurement), fill = index)) + geom_bar() + 
+  # EUCAST cut-off of 1.0 mg/L is resistant
+  geom_vline(aes(xintercept = 8, linetype = "resistant"), alpha = 0.6, color = "black") +
+  # EUCAST cut-off of 0.25 mg/L is susceptible
+  geom_vline(aes(xintercept = 5, linetype = "susceptible"), color = "black") +
+  labs(title = "Total sample count at various MIC (broth dilution) measurements", x = "Measurement (mg/L)", y = "Frequency", fill = "Dataset", 
+       linetype = "MIC breakpoints") +
+  scale_linetype_manual(values = c("solid", "dotted")) 
+```
+
+#### MIC (agar dilution)
+##### EUCAST
+```{r}
+# only EUCAST used as testing standard
+cipro_antibiogram %>%
+  group_by(Laboratory.Typing.Method) %>%
+  filter(Laboratory.Typing.Method == "MIC (agar dilution)") %>% 
+  ggplot(aes(x = factor(Measurement), fill = index)) + geom_bar() + 
+  # EUCAST cut-off of 1.0 mg/L is resistant
+  geom_vline(aes(xintercept = 6, linetype = "resistant"), alpha = 0.6, color = "black") +
+  # EUCAST cut-off of 0.25 mg/L is susceptible
+  geom_vline(aes(xintercept = 4, linetype = "susceptible"), color = "black") +
+  labs(title = "Total sample count at various MIC (agar dilution) measurements", x = "Measurement (mg/L)", y = "Frequency", fill = "Dataset", 
+       linetype = "MIC breakpoints") +
+  # round off x-axis labels to 2dp
+  scale_x_discrete(labels = function(x) round(as.numeric(x), digits = 2)) +
+  scale_linetype_manual(values = c("solid", "dotted")) 
+```
+
+#### Disk diffusion {.tabset .tabset-pills}
+##### CLSI
+```{r}
+cipro_antibiogram %>%
+  group_by(Laboratory.Typing.Method) %>%
+  filter(Laboratory.Typing.Method == "Disk diffusion") %>%
+  filter(Testing.standard == "CLSI") %>%
+  ggplot(aes(Measurement, fill = index)) + geom_bar() + 
+  # CLSI cut-off of 21mm is resistant
+  geom_vline(aes(xintercept = 21, linetype = "resistant"), color = "black") +
+  # CLSI cut-off of 26mm is susceptible
+  geom_vline(aes(xintercept = 26, linetype = "susceptible"), color = "black") +
+  labs(title = "Total sample count at various disk diffusion measurements", x = "Measurement (mm)", y = "Frequency", fill = "Dataset", 
+       linetype = "Disk diffusion \nbreakpoints") +
+  scale_linetype_manual(values = c("solid", "dotted"))
+```
+
+##### EUCAST
+```{r}
+cipro_antibiogram %>%
+  group_by(Laboratory.Typing.Method) %>%
+  filter(Laboratory.Typing.Method == "Disk diffusion") %>%
+  filter(Testing.standard == "EUCAST") %>%
+  ggplot(aes(Measurement, fill = index)) + geom_bar() + 
+  # EUCAST cut-off of 21mm is resistant
+  geom_vline(aes(xintercept = 21, linetype = "resistant"), color = "black") +
+  # CLSI cut-off of 25mm is susceptible
+  geom_vline(aes(xintercept = 25, linetype = "susceptible"), color = "black") +
+  labs(title = "Total sample count at various disk diffusion measurements", x = "Measurement (mm)", y = "Frequency", fill = "Dataset", 
+       linetype = "Disk diffusion \nbreakpoints") +
+  scale_linetype_manual(values = c("solid", "dotted"))
+```
+
+## UpSet plots visualising resistance mechanism combinations for the lab typing methods
+```{r}
+# combine Flq_mutations and Flq_acquired into one column
+# edit: remove Omp mutations from analysis as based on violin + upset plots, they
+# do not seem to contribute to ciprofloxacin resistance
+cipro_res_mech <- cipro_antibiogram %>%
+  pivot_longer(Flq_mutations:Flq_acquired, names_to = "Flq.resistance.mech", 
+               values_to = "Resistance.mech.type") %>%
+  separate(Resistance.mech.type, into = c("type_A", "type_B", "type_C"), sep = "[;]")
+
+cipro_res_mech <- cipro_res_mech %>%
+  pivot_longer(cols = names(cipro_res_mech)[26:28], values_to = "Resistance.mech.type") %>%
+  drop_na(Resistance.mech.type) %>%
+  select(-name) 
+
+# group gyrA, parC, and qnr genes
+cipro_res_mech <- cipro_res_mech %>%
+  group_res_mech(Resistance.mech.type)
+
+# explicitly label strains with wildtype QRDR (gyrA/parC) and no acquired genes as such
+cipro_res_mech <- cipro_res_mech %>%
+  mutate(Resistance.mech.type = replace(Resistance.mech.type, Flq.resistance.mech=="Flq_mutations" & Resistance.mech.type=="-", "wt_QRDR")) %>%
+  mutate(Resistance.mech.type = replace(Resistance.mech.type, Flq.resistance.mech=="Flq_acquired" & Resistance.mech.type=="-", "no_acquired_genes"))
+```
+
+### Summary bar plot of resistance mechanisms {.tabset .tabset-pills}
+#### Count table
+```{r}
+# count number of occurrences of the different fluoroquinolone resistance determinants
+summ_res_mech <- cipro_res_mech %>%
+  filter(Resistance.mech.type != "wt_QRDR" & Resistance.mech.type != "no_acquired_genes") %>%
+  group_by(Flq.resistance.mech, Resistance.mech.type) %>%
+  summarise(count = n()) 
+
+DT::datatable(summ_res_mech,
+              width = "50%",
+              extensions = "FixedHeader",
+              rownames = FALSE,
+              options = list(paging=TRUE, fixedHeader=TRUE, scrollX=TRUE))
+```
+
+#### Summary bar plot
+```{r fig.width=9, fig.height=8}
+summ_res_mech %>%
+  ggplot(aes(Resistance.mech.type, count, fill = Flq.resistance.mech)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = count), stat = "identity", nudge_y = 60) +
+  labs(title = "Total sample count per resistance determinant", x = "Resistance mechanism",
+       y = "Total sample count", fill = "Fluoroquinolone resistance \nmechanism type") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
+  scale_fill_brewer(palette = "Accent")
+```
+
+### UpSet plots {.tabset .tabset-pills}
+#### Violin plots {.tabset .tabset-pills}
+##### MIC (broth dilution) {.tabset .tabset-pills}
+###### CLSI
+```{r fig.height=10, fig.width=12}
+cipro_res_mech %>%
+  filter(!(Resistance.mech.type == "no_acquired_genes")) %>% # exclude these rows as not informative
+  filter(Laboratory.Typing.Method == "MIC (broth dilution)") %>%
+  filter(Testing.standard == "CLSI") %>%
+  upset_violin_plot("Resistance.mech.type", "Laboratory.Typing.Method", "Testing.standard") +
+  labs(title = "Fluoroquinolone resistance determinant combinations at various MIC (broth dilution) measurements")
+```
+
+###### EUCAST
+```{r fig.height=10, fig.width=13}
+cipro_res_mech %>%
+  filter(!(Resistance.mech.type == "no_acquired_genes")) %>% # exclude these rows as not informative
+  filter(Laboratory.Typing.Method == "MIC (broth dilution)") %>%
+  filter(Testing.standard == "EUCAST") %>%
+  upset_violin_plot("Resistance.mech.type", "Laboratory.Typing.Method", "Testing.standard") +
+  labs(title = "Fluoroquinolone resistance determinant combinations at various MIC (broth dilution) measurements") 
+```
+
+##### MIC (agar dilution) 
+###### EUCAST
+```{r fig.width=10, fig.height=9}
+# only EUCAST used as testing standard
+cipro_res_mech %>%
+  filter(!(Resistance.mech.type == "no_acquired_genes")) %>% # exclude these rows as not informative
+  filter(Laboratory.Typing.Method == "MIC (agar dilution)") %>%
+  upset_violin_plot("Resistance.mech.type", "Laboratory.Typing.Method", "Testing.standard") +
+  labs(title = "Fluoroquinolone resistance determinant combinations\nat various MIC (agar dilution) measurements") 
+```
+
+##### Disk diffusion {.tabset .tabset-pills}
+###### CLSI
+```{r fig.width=8, fig.height=7}
+cipro_res_mech %>%
+  filter(!(Resistance.mech.type == "no_acquired_genes")) %>% # exclude these rows as not informative
+  filter(Laboratory.Typing.Method == "Disk diffusion") %>%
+  filter(Testing.standard == "CLSI") %>%
+  upset_violin_plot("Resistance.mech.type", "Laboratory.Typing.Method", "Testing.standard") 
+```
+
+###### EUCAST
+```{r fig.width=11, fig.height=9}
+cipro_res_mech %>%
+  filter(!(Resistance.mech.type == "no_acquired_genes")) %>% # exclude these rows as not informative
+  filter(Laboratory.Typing.Method == "Disk diffusion") %>%
+  filter(Testing.standard == "EUCAST") %>%
+  upset_violin_plot("Resistance.mech.type", "Laboratory.Typing.Method", "Testing.standard")
+```
+
+#### Percent barcharts {.tabset .tabset-pills}
+##### MIC (broth dilution) {.tabset .tabset-pills}
+###### CLSI
+```{r fig.height=10, fig.width=12}
+cipro_res_mech %>%
+  filter(!(Resistance.mech.type == "no_acquired_genes")) %>% # exclude these rows as not informative
+  filter(Laboratory.Typing.Method == "MIC (broth dilution)") %>%
+  filter(Testing.standard == "CLSI") %>%
+  upset_bar_plot("Resistance.mech.type") +
+  labs(title = "Phenotypes for fluoroquinolone resistance determinant combinations")
+```
+
+###### EUCAST
+```{r fig.height=10, fig.width=13}
+cipro_res_mech %>%
+  filter(!(Resistance.mech.type == "no_acquired_genes")) %>% # exclude these rows as not informative
+  filter(Laboratory.Typing.Method == "MIC (broth dilution)") %>%
+  filter(Testing.standard == "EUCAST") %>%
+  upset_bar_plot("Resistance.mech.type") +
+  labs(title = "Phenotypes for fluoroquinolone resistance determinant combinations")
+```
+
+##### MIC (agar dilution) 
+###### EUCAST
+```{r fig.width=10, fig.height=8}
+# only EUCAST used as testing standard
+cipro_res_mech %>%
+  filter(!(Resistance.mech.type == "no_acquired_genes")) %>% # exclude these rows as not informative
+  filter(Laboratory.Typing.Method == "MIC (agar dilution)") %>%
+  upset_bar_plot("Resistance.mech.type") +
+  labs(title = "Phenotypes for fluoroquinolone resistance determinant combinations")
+```
+
+##### Disk diffusion {.tabset .tabset-pills}
+###### CLSI
+```{r fig.width=7, fig.height=6}
+cipro_res_mech %>%
+  filter(!(Resistance.mech.type == "no_acquired_genes")) %>% # exclude these rows as not informative
+  filter(Laboratory.Typing.Method == "Disk diffusion") %>%
+  filter(Testing.standard == "CLSI") %>%
+  upset_bar_plot("Resistance.mech.type") +
+  labs(title = "Phenotypes for fluoroquinolone resistance\ndeterminant combinations")
+```
+
+###### EUCAST
+```{r fig.width=9, fig.height=8}
+cipro_res_mech %>%
+  filter(!(Resistance.mech.type == "no_acquired_genes")) %>% # exclude these rows as not informative
+  filter(Laboratory.Typing.Method == "Disk diffusion") %>%
+  filter(Testing.standard == "EUCAST") %>%
+  upset_bar_plot("Resistance.mech.type") +
+  labs(title = "Phenotypes for fluoroquinolone resistance\ndeterminant combinations")
+```
+
+## ST analysis
+### Resistant strains displaying fluoroquinolone resistance mechanisms {.tabset .tabset-pills}
+#### ST count 
+```{r}
+# count STs with resistant phenotype
+top_35_st_res <- cipro_antibiogram %>%
+  filter(Resistance.phenotype == "resistant") %>%
+  filter(Flq_mutations != "-" | Flq_acquired != "-") %>%
+  group_by(ST) %>%
+  summarise(sample_count = n()) %>%
+  as.data.frame() %>%
+  arrange(desc(sample_count)) %>%
+  head(35) %>%
+  mutate(ST = factor(ST, levels = ST, ordered = TRUE))
+
+DT::datatable(top_35_st_res, 
+              width = "50%",
+              extensions = "FixedHeader",
+              rownames = FALSE,
+              options = list(paging=TRUE, fixedHeader=TRUE, scrollX=TRUE))
+```
+
+#### Summary bar plot
+```{r fig.width=10, fig.height=8}
+# Blues palette with 9 colors
+colour_palette <- brewer.pal(9, "Blues") 
+
+# Add more colors to this palette :
+colour_palette <- colorRampPalette(colour_palette)(35)
+
+top_35_st_res %>%
+  ggplot(aes(y = ST, x = sample_count, fill = ST, label = sample_count)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  geom_text(hjust = -0.5) +
+  scale_y_discrete(limits = rev) +
+  ggtitle("Top STs with fluoroquinolone resistance") +
+  labs(x = "Sample count") +
+  # reverse order of colour palette
+  scale_fill_manual(values = rev(colour_palette)) +
+  theme_minimal() +
+  theme(legend.position = "none",
+  axis.text = element_text(size = 10)) +
+  coord_cartesian(clip = "off")
+```
+
+#### Resistant STs associated with specific fluoroquinolone resistance mechanisms {.tabset .tabset-pills}
+##### Proportion table
+```{r}
+st_totals <- cipro_antibiogram %>%
+  group_by(ST) %>%
+  summarise(N=n())
+
+st_res_mech <- cipro_res_mech %>%
+  filter(Resistance.phenotype == "resistant") %>%
+  filter(Resistance.mech.type != "wt_QRDR", Resistance.mech.type != "no_acquired_genes") %>%
+  count(ST, Resistance.mech.type) %>% 
+  left_join(st_totals) %>% # ST total counts
+  mutate(prop = n/N) %>% # proportion per ST
+  mutate(se = sqrt(prop*(1-prop)/N)) %>%
+  mutate(p_lowerCI = prop-1.96*se, p_upperCI = prop+1.96*se) %>%
+  mutate(p_lowerCI = replace(p_lowerCI, p_lowerCI<0, 0)) %>%
+  mutate(p_upperCI = replace(p_upperCI, p_upperCI>1, 1)) %>%
+  select(-se) %>%
+  mutate(ST = factor(ST, levels = unique(ST)))
+
+DT::datatable(st_res_mech, 
+              extensions = "FixedHeader",
+              rownames = FALSE,
+              options = list(paging=TRUE, fixedHeader=TRUE, scrollX=TRUE))
+```
+
+##### Heatmap of the proportions of resistance determinants per ST
+```{r}
+st_res_mech %>%
+  filter(ST %in% st_res_mech$ST[st_res_mech$prop>0.1 & st_res_mech$N>50]) %>%
+  ggplot(aes(x=ST, y = Resistance.mech.type)) +
+  geom_tile(aes(fill=prop)) +
+  labs(subtitle = "Fluoroquinolone resistance mechanisms in top resistant STs", 
+       y = "Fluoroquinolone resistance mechanisms", fill = "Proportion per \nST") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8, colour = "black")) + 
+  scale_fill_gradient(low = "white", high = "red")
+```
+
+##### Heatmap/UpSet plot showing %proportion of resistance determinant combinations per ST {.tabset .tabset-pills}
+###### Proportion table
+```{r}
+# separate resistance determinants
+cipro_res_mech_prop <- cipro_antibiogram %>%
+  separate(Flq_mutations, into = c("mut_A", "mut_B", "mut_C"), sep = "[;]") %>%
+  separate(Flq_acquired, into = c("acq_A", "acq_B", "acq_C"), sep = "[;]") 
+
+# group determinants based on statistical analysis
+cipro_res_mech_prop <- cipro_res_mech_prop %>%
+  group_res_mech(mut_A) %>%
+  group_res_mech(mut_B) %>%
+  group_res_mech(mut_C) %>%
+  group_res_mech(acq_A) %>%
+  group_res_mech(acq_B) %>%
+  group_res_mech(acq_C) 
+
+# combine previously separated resistance determinants columns
+cipro_res_mech_prop <- cipro_res_mech_prop %>%
+  unite("Flq_mutations", mut_A, mut_B, mut_C, sep = ";", na.rm = TRUE) %>%
+  unite("Flq_acquired", acq_A, acq_B, acq_C, sep = ";", na.rm = TRUE) 
+
+# combine all the resistance determinants columns using a ";" excluding rows without
+# mutations 
+cipro_res_mech_prop <- cipro_res_mech_prop %>%
+  # replace "-" with NA
+  replace_with_na(replace = list(Flq_mutations = "-", Flq_acquired = "-")) %>%
+  unite("res_mech", Flq_mutations:Flq_acquired, sep = ";", remove = FALSE, na.rm = TRUE) %>%
+  # replace NA with "-"
+  replace_na(list(Flq_mutations = "-", Flq_acquired = "-")) 
+
+# replace empty cells with "-"
+cipro_res_mech_prop$res_mech <- sub("^$", "-", cipro_res_mech_prop$res_mech)
+
+# calculate proportions of different combinations
+st_res_mech_prop <- cipro_res_mech_prop %>%
+  filter(Resistance.phenotype == "resistant") %>%
+  filter(res_mech != "-") %>%
+  group_by(ST) %>%
+  count(ST, res_mech) %>%
+  left_join(st_totals) %>% # ST total counts
+  mutate(prop = n/N) %>% # proportion per ST
+  mutate(se = sqrt(prop*(1-prop)/N)) %>%
+  mutate(p_lowerCI = prop-1.96*se, p_upperCI = prop+1.96*se) %>%
+  mutate(p_lowerCI = replace(p_lowerCI, p_lowerCI<0, 0)) %>%
+  mutate(p_upperCI = replace(p_upperCI, p_upperCI>1, 1)) %>%
+  select(-se) %>%
+  mutate(ST = factor(ST, levels = unique(ST))) %>%
+  arrange(res_mech) 
+
+DT::datatable(st_res_mech_prop, 
+              extensions = "FixedHeader",
+              rownames = FALSE,
+              options = list(paging=TRUE, fixedHeader=TRUE, scrollX=TRUE))
+```
+
+###### Heatmap of different combinations per ST
+```{r fig.width=11, fig.height=9}
+# create heatmap/upset plot of different combinations per ST
+st_res_mech_prop %>%
+  filter(ST %in% st_res_mech$ST[st_res_mech$prop>0.1 & st_res_mech$N>50]) %>%
+  summarise(ST, res_mech, prop) %>%
+  ggplot(aes(x=res_mech, y=ST, fill=prop)) +
+  geom_tile() +
+  axis_combmatrix(sep = ";") +
+  theme_combmatrix(combmatrix.panel.line.size = 0.8) + 
+  scale_fill_gradient(low = "white", high = "red") +
+  labs(x = "Resistance determinants", fill = "Proportion per\nST",
+       title = "Proportions of fluoroquinolone resistance determinant combinations per ST")
+```
+
+### Resistant strains displaying no fluoroquinolone resistance mechanisms {.tabset .tabset-pills}
+#### Count table
+```{r}
+no_res_mech <- cipro_antibiogram %>%
+  filter(Flq_mutations == "-", Flq_acquired == "-") %>%
+  filter(Resistance.phenotype == "resistant")
+
+st_no_res_mech <- no_res_mech %>%
+  group_by(ST) %>%
+  summarise(sample_count = n()) %>%
+  as.data.frame() %>%
+  arrange(desc(sample_count)) %>%
+  mutate(ST = factor(ST, levels = ST, ordered = TRUE))
+
+DT::datatable(st_no_res_mech,
+              width = "50%",
+              extensions = "FixedHeader",
+              rownames = FALSE,
+              options = list(paging=TRUE, fixedHeader=TRUE, scrollX=TRUE))
+```
+
+#### Bar plot
+```{r}
+st_no_res_mech %>%
+  filter(sample_count > 2) %>%
+  ggplot(aes(ST, sample_count)) +
+  geom_bar(stat = "identity", fill = "blue", alpha = 0.7) +
+  labs(title = "Resistant STs with no fluoroquinolone resistance mechanisms", y = "Count") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+### Susceptible strains displaying fluoroquinolone resistance mechanisms {.tabset .tabset-pills}
+#### Count table
+```{r}
+sus_res_mech <- cipro_res_mech %>%
+  filter(Resistance.phenotype == "susceptible") %>%
+  filter(Resistance.mech.type != "wt_QRDR", Resistance.mech.type != "no_acquired_genes")
+
+st_sus_res_mech <- sus_res_mech %>%
+  group_by(ST) %>%
+  summarise(res_mech = Resistance.mech.type) %>%
+  as.data.frame() %>%
+  count(ST, res_mech, sort = TRUE) %>%
+  mutate(ST = factor(ST, levels = unique(ST)))
+
+DT::datatable(st_sus_res_mech,
+              width = "50%",
+              extensions = "FixedHeader",
+              rownames = FALSE,
+              options = list(paging=TRUE, fixedHeader=TRUE, scrollX=TRUE))
+```
+
+#### Bar plot
+```{r}
+st_sus_res_mech %>%
+  filter(n > 1) %>%
+  ggplot(aes(ST, n, fill = res_mech)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Fluoroquinolone resistance mechanisms employed by the top susceptible STs", y = "Count", fill = "Fluoroquinolone resistance\nmechanisms") +
+  # put legend in one column
+  guides(fill = guide_legend(ncol = 1)) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+#### UpSet plots {.tabset .tabset-pills}
+##### MIC (broth dilution) {.tabset .tabset-pills}
+###### CLSI
+```{r fig.width=7, fig.height=6}
+sus_res_mech %>%
+  filter(Laboratory.Typing.Method == "MIC (broth dilution)") %>%
+  filter(Testing.standard == "CLSI") %>%
+  upset_violin_plot("Resistance.mech.type", "Laboratory.Typing.Method", "Testing.standard") +
+  labs(title = "Fluoroquinolone resistance determinant combinations\nat various MIC (broth dilution) measurements") 
+```
+
+###### EUCAST
+```{r fig.width=7, fig.height=6}
+sus_res_mech %>%
+  filter(Laboratory.Typing.Method == "MIC (broth dilution)") %>%
+  filter(Testing.standard == "EUCAST") %>%
+  upset_violin_plot("Resistance.mech.type", "Laboratory.Typing.Method", "Testing.standard") +
+  labs(title = "Fluoroquinolone resistance determinant combinations\nat various MIC (broth dilution) measurements") 
+```
+
+##### MIC (agar dilution)
+###### EUCAST
+```{r fig.height=6}
+# only EUCAST used as testing standard
+sus_res_mech %>%
+  filter(Laboratory.Typing.Method == "MIC (agar dilution)") %>%
+  upset_violin_plot("Resistance.mech.type", "Laboratory.Typing.Method", "Testing.standard") +
+  labs(title = "Fluoroquinolone resistance determinant combinations\nat various MIC (agar dilution) measurements") 
+```
+
+##### Disk diffusion 
+###### EUCAST
+```{r fig.height=6}
+# only EUCAST has values
+sus_res_mech %>%
+  filter(Laboratory.Typing.Method == "Disk diffusion") %>%
+  filter(Testing.standard == "EUCAST") %>%
+  upset_violin_plot("Resistance.mech.type", "Laboratory.Typing.Method", "Testing.standard")
+```
+
+```{r proportion, eval=FALSE, include=FALSE}
+# Statistical analysis
+# proportion test
+
+# calculate frequencies of different resistance mechanisms for the different phenotypes
+# including numbers for the wildtype groups for comparison to compare resistance frequency 
+# amongst strains with the determinant vs strains without
+mech_freq <- cipro_res_mech %>%
+  group_by(Resistance.mech.type, Resistance.phenotype) %>%
+  filter(Resistance.phenotype != "intermediate") %>%
+  summarise(n = n()) %>%
+  ungroup() %>%
+  group_by(Resistance.mech.type) %>%
+  pivot_wider(names_from = Resistance.phenotype, values_from = n) 
+
+# convert na values to 0
+mech_freq[is.na(mech_freq)] <- 0
+
+# find totals of different resistance mechanisms
+mech_freq <- mech_freq %>%
+  mutate(total = sum(c(resistant, susceptible)))
+
+
+# compare each gyrA/parC SNP vs wildtype QRDR
+qrdr_wt <- mech_freq %>% filter(Resistance.mech.type == "wt_QRDR")
+qrdr_mut <- mech_freq %>% 
+  filter(startsWith(Resistance.mech.type, "GyrA") | startsWith(Resistance.mech.type, "ParC")) %>%
+  mutate(wt_res = qrdr_wt[2], wt_total=qrdr_wt[4]) # add columns with the wildtype counts for res & total
+  
+# run prop.test() to each row, comparing the resistant counts (x) with the total counts (n)
+qrdr_prop_out <- dapply(as.matrix(qrdr_mut), MARGIN = 1, 
+       FUN = function(y) broom::tidy(prop.test(x=c(as.numeric(y[2]), as.numeric(y[5])), n=c(as.numeric(y[4]), as.numeric(y[6])))))
+
+# combine qrdr_mut and qrdr_prop_out
+qrdr_mut_freq_prop <- cbind(qrdr_mut, qrdr_prop_out) %>%
+  select(resistant, total, estimate1, estimate2, p.value) %>%
+  mutate(p.value=as.numeric(p.value))
+
+qrdr_mut_freq_prop
+
+# specific mutations observed more than once, significantly associated with elevated resistance (vs wildtype QRDR)
+view(qrdr_mut_freq_prop %>% filter(total>1) %>% filter(p.value < 0.05))
+
+# the data provides evidence that ANY mutation at the 4 codons we track is associated with resistance, even though for some individual mutations we only have one observation:
+# check gyrA83, there are 5 mutations observed at this codon (A, F, I, L, Y)
+# 4 have large numbers (≥10) and significant p-values, gyrA-83A is observed only once but is also resistant
+qrdr_mut_freq_prop %>% filter(startsWith(Resistance.mech.type,"GyrA-83"))
+
+# Similar for GyrA-87, except that GyrA87-H is only seen in one strain and it is sensitive, so exclude this one (not a borderline phenotype)
+qrdr_mut_freq_prop %>% filter(startsWith(Resistance.mech.type,"GyrA-87"))
+
+# ParC-80 and ParC-84 look the same as for GyrA-83, ie all mutations at the site have same effect can be grouped together
+qrdr_mut_freq_prop %>% filter(startsWith(Resistance.mech.type,"ParC-80"))
+qrdr_mut_freq_prop %>% filter(startsWith(Resistance.mech.type,"ParC-84"))
+
+# based on the statistical analysis, QRDR mutations will be updated to have just 4 types 
+# (GyrA-83, GyrA-87, ParC-80, ParC-84) instead of 19 most of which are rare
+
+
+# compare each Omp mutations vs wildtype Omp
+#omp_wt <- mech_freq %>% filter(Resistance.mech.type == "wt_Omp")
+#omp_mut <- mech_freq %>% 
+  #filter(startsWith(Resistance.mech.type, "Omp")) %>%
+  #mutate(wt_res = omp_wt[2], wt_total=omp_wt[4]) # add columns with the wildtype counts for res & total
+
+# run prop.test() to each row, comparing the resistant counts (x) with the total counts (n)
+#omp_prop_out <- dapply(as.matrix(omp_mut), MARGIN = 1, 
+       #FUN = function(y) broom::tidy(prop.test(x=c(as.numeric(y[2]), as.numeric(y[5])), n=c(as.numeric(y[4]), as.numeric(y[6])))))
+
+#omp_mut_freq_prop <- cbind(omp_mut, omp_prop_out) %>% 
+  #select(resistant, total, estimate1, estimate2, p.value) %>%
+  #mutate(p.value=as.numeric(p.value))
+
+# all four mutations (truncation of either ompK35 or ompK36; and insertion of GD or TD in OmpK36, are all significantly associated with resistance)
+#view(omp_mut_freq_prop)
+
+
+# compare acquired vs no acquired genes
+no_acquired <- mech_freq %>% filter(Resistance.mech.type == "no_acquired_genes")
+acquired_genes <- mech_freq %>% 
+  filter(startsWith(Resistance.mech.type, "qnr") | startsWith(Resistance.mech.type, "qep") ) %>%
+  mutate(wt_res = no_acquired[2], wt_total=no_acquired[4]) # add columns with the wildtype counts for res & total
+
+# run prop.test() to each row, comparing the resistant counts (x) with the total counts (n)
+acquired_genes_prop_out <- dapply(as.matrix(acquired_genes), MARGIN = 1, 
+       FUN = function(y) broom::tidy(prop.test(x=c(as.numeric(y[2]), as.numeric(y[5])), n=c(as.numeric(y[4]), as.numeric(y[6])))))
+
+acquired_genes_freq_prop <- cbind(acquired_genes, acquired_genes_prop_out) %>% 
+  select(resistant, total, estimate1, estimate2, p.value) %>%
+  mutate(p.value=as.numeric(p.value))
+
+view(acquired_genes_freq_prop)
+
+# from the statistical analysis, the following can be combined:
+# qepA2 (n=1, which is resistant) with qepA2* (n=17, all of which are resistant)
+# qnrA1 and qnrA1^ (note the ^ means they are identical at protein level anyway) as all are resistant
+# qnrB1.v1, qnrB1.v2, qnrB1.v2^ for similar reasons
+# qnrB19, qnrB19^
+# qnrB2.1, qnrB2.2
+# qnrS1, qnrS1?, qnrS1*
+# could also combine all the 'rare' genes that are only seen 1-2 times each but are always resistant:
+# -> qnrB7, qnrE2, qnrS2, qnrVC1, qnrVC6
+```
+
+# Appendix
+```{r get-labels, echo = FALSE}
+labs = knitr::all_labels()
+labs = labs[labs %in% c("functions", "proportion")]
+```
+```{r all-code, ref.label=labs, eval=FALSE}
+```
+
+# Session information
+```{r}
+sessionInfo()
+```
