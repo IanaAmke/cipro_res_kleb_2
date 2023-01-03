@@ -1,39 +1,22 @@
-# Import parts of Biopython
 from Bio import SeqIO
 # Adds progress bar
-# Run pip install tqdm in terminal for this to work
 from tqdm import tqdm 
 
 # File path to your FASTA file
 path_to_ref = 'parc_ref_aa_seq.faa'   # Reference data
 
 with open(path_to_ref, mode='r') as ref_path:
-
     # Use Biopython's parse function to process individual
     # FASTA records (thus reducing memory footprint)
     for ref in SeqIO.parse(ref_path, 'fasta'):
-
         # Extract individual parts of the FASTA record
         ref_sequence = str(ref.seq).upper()
-        # identifier = record.id
-        # description = record.description
-
-        # Example: adapt to extract features you are interested in
-        # print('----------------------------------------------------------')
-        # print('Processing the record {}:'.format(identifier))
-        # print('Its description is: \n{}'.format(description))
-        # amount_of_nucleotides = len(sequence)
-        # print('Its sequence contains {} nucleotides.'.format(amount_of_nucleotides))
 
 # File path to your FASTA file
 path_to_sub = 'parc_blast_align_with_ref.faa'   # Sequences aligned to the reference amino acid sequence
 
 with open(path_to_sub, mode='r') as seq_path:
-
-    # Use Biopython's parse function to process individual
-    # FASTA records (thus reducing memory footprint)
     records = []
-
     for sub in SeqIO.parse(seq_path, 'fasta'):
         sub_sequence = str(sub.seq).upper()
         records.append([sub.id, sub_sequence])
