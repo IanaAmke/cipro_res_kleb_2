@@ -30,8 +30,7 @@ knitr::opts_chunk$set(dev = 'png', echo = TRUE, message = FALSE, warning = FALSE
 ```
 
 ```{r functions, include=FALSE}
-# Functions 
-# 1. upset_violin_plot to create violin + UpSet plots for AST measurements and fluoroquinolone resistance mechanisms
+# upset_violin_plot to create violin + UpSet plots for AST measurements and fluoroquinolone resistance mechanisms
 
 # create violin + UpSet plots for AST measurements and fluoroquinolone resistance mechanisms
 upset_violin_plot <- function(df, x, y, z) {
@@ -112,7 +111,7 @@ upset_violin_plot <- function(df, x, y, z) {
   }
 }
 
-# 2. upset_bar_plot to create percent stacked bar charts + UpSet plots for AST measurements and fluoroquinolone resistance mechanisms
+# upset_bar_plot to create percent stacked bar charts + UpSet plots for AST measurements and fluoroquinolone resistance mechanisms
 
 # create percent stacked barchart + UpSet plots for AST measurements and fluoroquinolone resistance mechanisms
 upset_bar_plot <- function(df, x) {
@@ -131,7 +130,7 @@ upset_bar_plot <- function(df, x) {
     theme_combmatrix(combmatrix.panel.line.size = 0.8)
 }
 
-# 3. group_res_mech to group resistance determinants
+# group_res_mech to group resistance determinants
 
 # function to group some resistance determinants
 group_res_mech <- function(df, x) {
@@ -159,7 +158,6 @@ group_res_mech <- function(df, x) {
     mutate({{ x }} := replace({{ x }}, startsWith({{ x }}, "qnrS1"), "qnrS1")) %>%
     mutate({{ x }} := replace({{ x }}, grepl(paste(rare_res_qnr_genes, collapse = "|"), {{ x }}), "rare_res_qnr"))
 }
-
 ```
 
 # Preliminary analysis of sample data
@@ -210,7 +208,7 @@ cipro_antibiogram <- antibiogram %>%
 #write_delim(cipro_antibiogram, file = "cipro_antibiogram.tsv", delim = "\t")
 ```
 
-## Summary bar plots {.tabset .tabset-pills}
+## Summary bar plots of sample genomes being analysed {.tabset .tabset-pills}
 ### Sample count per dataset
 ```{r}
 cipro_antibiogram %>%
@@ -322,6 +320,33 @@ cipro_res_mech <- cipro_res_mech %>%
   select(-name) 
 ```
 
+### Summary bar plot of resistance determinants per phenotype {.tabset .tabset-pills}
+#### Count table
+```{r}
+# count number of occurrences of the different fluoroquinolone resistance determinants
+summ_res_mech <- cipro_res_mech %>%
+  group_by(Flq.resistance.mech, Resistance.mech.type, Resistance.phenotype) %>%
+  summarise(count = n()) 
+
+DT::datatable(summ_res_mech,
+              width = "50%",
+              extensions = "FixedHeader",
+              rownames = FALSE,
+              options = list(paging=TRUE, fixedHeader=TRUE, scrollX=TRUE))
+```
+
+#### Summary bar plot
+```{r fig.width=15, fig.height=6}
+summ_res_mech %>%
+  ggplot(aes(Resistance.mech.type, count)) +
+  geom_bar(stat = "identity", fill = "#00ff2f", alpha = 0.6) +
+  facet_wrap(~ Resistance.phenotype, ncol = 3) +
+  geom_text(aes(label = count), stat = "identity", nudge_y = 70) +
+  labs(title = "Total sample count per resistance determinant", x = "Resistance mechanism",
+       y = "Total sample count") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+```
+
 ### UpSet plots 
 #### Violin plots {.tabset .tabset-pills}
 ##### MIC (broth dilution) {.tabset .tabset-pills}
@@ -370,7 +395,8 @@ cipro_res_mech %>%
   upset_violin_plot("Resistance.mech.type", "Laboratory.Typing.Method", "Testing.standard")
 ```
 
-From the violin plots, one can see that there are genomes with no mutations (1299/10448) that are resistant to ciprofloxacin. Those genomes were filtered out and saved as **cipro_res_no_mutations.tsv**. 
+####
+From the violin plots, one can see that there are genomes with no mutations, 1299/10448 (12.43%), that are resistant to ciprofloxacin. Those genomes were filtered out and saved as **cipro_res_no_mutations.tsv**. Due to there being genomes that were resistant to ciprofloxacin but had no mutations in *gyrA* or *parC*, gene sequences of the two genes were extracted from the genomes, translated into proteins, and checked for mutations. 
 
 ```{r}
 # filter for resistant strains with no gyrA or parC mutations
@@ -459,7 +485,7 @@ Prodigal was run to translate the *gyrA* and *parC* nucleotide sequences into am
 After running Prodigal, BLASTP was run on Massive using **blast_gyra.sh** and **blast_parc.sh** whereby **filtered_gyrA_aa.faa** and **filtered_parC_aa.faa** were queried against **gyra_ref_aa_seq.faa** and **parc_ref_aa_seq.faa** to get blast outputs with the best hits, **gyrA_blast.tsv** and **parC_blast.tsv**. The amino acid sequences of the best hits were extracted using **extract_gyra_blast.py** and **extract_parc_blast.py** and saved as **gyra_blast.faa** and **parc_blast.faa** respectively. The GyrA amino acid sequence of **KP_NORM_BLD_2011_75132** was added manually to the **gyra_blast.faa** file by first translating the nucleotide sequence using the Translate tool on Expasy - 3'5' frame 1 was chosen. 
 
 ## Alignment to GyrA and ParC reference sequences
-**parc_blast.faa** and **gyra_blast.faa** were then aligned to the reference sequences using mafft and the reference sequences were removed from the resulting alignment files: `mafft parc_blast.faa > parc_blast_align.faa` and `mafft gyra_blast.faa > gyra_blast_align.faa` to first align the sequences then `mafft --addfull parc_ref_aa_seq.faa parc_blast_align.faa > parc_blast_align_with_ref.faa` and `mafft --addfull gyra_ref_aa_seq.faa gyra_blast_align.faa > gyra_blast_align_with_ref.faa` to align them to the reference. Afterwards, strains with WT GyrA/ParC, those with mutations in the proteins and with truncated amino acid sequences were summarised using **gyrA_mismatch_pos.py** and **parC_mismatch_pos.py**. The mutations, obtained from **gyrA_mutations.csv** and **parC_mutations.csv**, were then compared to the Kleborate output and mutations not in Kleborate but fall within the quinolone resistance-determining region (QRDR) i.e. position 67-106 for GyrA and 63-102 for ParC were saved in **mutations_not_in_kleborate.tsv**. Mutations different from those picked up by Kleborate were marked with a double asterisk (**).
+Alignment of the genomes to the GyrA and ParC reference sequences was done to check whether the sample genome had mutations in those proteins. **parc_blast.faa** and **gyra_blast.faa** were first aligned to the reference sequences using mafft and the reference sequences were removed from the resulting alignment files: `mafft parc_blast.faa > parc_blast_align.faa` and `mafft gyra_blast.faa > gyra_blast_align.faa` to first align the sequences then `mafft --addfull parc_ref_aa_seq.faa parc_blast_align.faa > parc_blast_align_with_ref.faa` and `mafft --addfull gyra_ref_aa_seq.faa gyra_blast_align.faa > gyra_blast_align_with_ref.faa` to align them to the reference. Afterwards, strains with WT GyrA/ParC, those with mutations in the proteins and with truncated amino acid sequences were summarised using **gyrA_mismatch_pos.py** and **parC_mismatch_pos.py**. The mutations, obtained from **gyrA_mutations.csv** and **parC_mutations.csv**, were then compared to the Kleborate output and mutations not in Kleborate but fall within the quinolone resistance-determining region (QRDR) i.e. position 67-106 for GyrA and 63-102 for ParC were saved in **mutations_not_in_kleborate.tsv**. Mutations different from those picked up by Kleborate were marked with a double asterisk (**).
 
 ```{r results='hide'}
 # read GyrA mutations file
@@ -648,7 +674,7 @@ cipro_antibiogram <- cipro_antibiogram %>%
   relocate(Flq_mutations, .before = Flq_acquired)
 ```
 
-## Summary bar plots {.tabset .tabset-pills}
+## Summary bar plots of sample genomes being analysed {.tabset .tabset-pills}
 ### Sample count per dataset
 ```{r}
 cipro_antibiogram %>%
@@ -656,8 +682,18 @@ cipro_antibiogram %>%
   ggplot(aes(x = index)) +
   geom_bar(fill = "#ff8000", alpha = 0.6) +
   geom_text(aes(label = ..count..), stat = "count", nudge_y = 60) +
-  labs(title = "Total sample count per dataset", y = "Total sample count", fill = "Lab typing method") +
+  labs(title = "Total sample count per dataset", y = "Total sample count") +
   theme(axis.title.x = element_blank(), axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+### Sample count per phenotype
+```{r}
+cipro_antibiogram %>%
+  group_by(Resistance.phenotype) %>%
+  ggplot(aes(x = Resistance.phenotype)) +
+  geom_bar(fill = "#ff0000", alpha = 0.6) +
+  geom_text(aes(label = ..count..), stat = "count", nudge_y = 80) +
+  labs(title = "Total sample count for each phenotype", x = "Phenotype", y = "Total sample count") 
 ```
 
 ### Total sample counts vs measurements for different lab typing methods {.tabset .tabset-pills}
@@ -670,9 +706,9 @@ cipro_antibiogram %>%
   filter(Testing.standard == "CLSI") %>% 
   ggplot(aes(x = factor(Measurement), fill = index)) + geom_bar() + 
   # CLSI cut-off of 1.0 mg/L is resistant
-  geom_vline(aes(xintercept = 5, linetype = "resistant"), alpha = 0.6, color = "black") +
+  geom_vline(aes(xintercept = 4, linetype = "resistant"), alpha = 0.6, color = "black") +
   # CLSI cut-off of 0.25 mg/L is susceptible
-  geom_vline(aes(xintercept = 3, linetype = "susceptible"), color = "black") +
+  geom_vline(aes(xintercept = 2, linetype = "susceptible"), color = "black") +
   labs(title = "Total sample count at various MIC (broth dilution) measurements", x = "Measurement (mg/L)", y = "Frequency", fill = "Dataset", 
        linetype = "MIC breakpoints") +
   scale_linetype_manual(values = c("solid", "dotted")) 
@@ -686,9 +722,9 @@ cipro_antibiogram %>%
   filter(Testing.standard == "EUCAST") %>% 
   ggplot(aes(x = factor(Measurement), fill = index)) + geom_bar() + 
   # EUCAST cut-off of 1.0 mg/L is resistant
-  geom_vline(aes(xintercept = 8, linetype = "resistant"), alpha = 0.6, color = "black") +
+  geom_vline(aes(xintercept = 6, linetype = "resistant"), alpha = 0.6, color = "black") +
   # EUCAST cut-off of 0.25 mg/L is susceptible
-  geom_vline(aes(xintercept = 5, linetype = "susceptible"), color = "black") +
+  geom_vline(aes(xintercept = 4, linetype = "susceptible"), color = "black") +
   labs(title = "Total sample count at various MIC (broth dilution) measurements", x = "Measurement (mg/L)", y = "Frequency", fill = "Dataset", 
        linetype = "MIC breakpoints") +
   scale_linetype_manual(values = c("solid", "dotted")) 
@@ -703,9 +739,9 @@ cipro_antibiogram %>%
   filter(Laboratory.Typing.Method == "MIC (agar dilution)") %>% 
   ggplot(aes(x = factor(Measurement), fill = index)) + geom_bar() + 
   # EUCAST cut-off of 1.0 mg/L is resistant
-  geom_vline(aes(xintercept = 6, linetype = "resistant"), alpha = 0.6, color = "black") +
+  geom_vline(aes(xintercept = 5, linetype = "resistant"), alpha = 0.6, color = "black") +
   # EUCAST cut-off of 0.25 mg/L is susceptible
-  geom_vline(aes(xintercept = 4, linetype = "susceptible"), color = "black") +
+  geom_vline(aes(xintercept = 3, linetype = "susceptible"), color = "black") +
   labs(title = "Total sample count at various MIC (agar dilution) measurements", x = "Measurement (mg/L)", y = "Frequency", fill = "Dataset", 
        linetype = "MIC breakpoints") +
   # round off x-axis labels to 2dp
@@ -754,10 +790,10 @@ cipro_antibiogram %>%
 cipro_res_mech <- cipro_antibiogram %>%
   pivot_longer(Flq_mutations:Flq_acquired, names_to = "Flq.resistance.mech", 
                values_to = "Resistance.mech.type") %>%
-  separate(Resistance.mech.type, into = c("type_A", "type_B", "type_C"), sep = "[;]")
+  separate(Resistance.mech.type, into = c("type_A", "type_B", "type_C", "type_D", "type_E", "type_F", "type_G", "type_H", "type_I"), sep = "[;]")
 
 cipro_res_mech <- cipro_res_mech %>%
-  pivot_longer(cols = names(cipro_res_mech)[26:28], values_to = "Resistance.mech.type") %>%
+  pivot_longer(cols = names(cipro_res_mech)[26:34], values_to = "Resistance.mech.type") %>%
   drop_na(Resistance.mech.type) %>%
   select(-name) 
 
@@ -788,7 +824,7 @@ DT::datatable(summ_res_mech,
 ```
 
 #### Summary bar plot
-```{r fig.width=9, fig.height=8}
+```{r fig.width=11, fig.height=8}
 summ_res_mech %>%
   ggplot(aes(Resistance.mech.type, count, fill = Flq.resistance.mech)) +
   geom_bar(stat = "identity") +
@@ -994,7 +1030,7 @@ st_res_mech %>%
 ```{r}
 # separate resistance determinants
 cipro_res_mech_prop <- cipro_antibiogram %>%
-  separate(Flq_mutations, into = c("mut_A", "mut_B", "mut_C"), sep = "[;]") %>%
+  separate(Flq_mutations, into = c("mut_A", "mut_B", "mut_C", "mut_D", "mut_E", "mut_F", "mut_G", "mut_H", "mut_I"), sep = "[;]") %>%
   separate(Flq_acquired, into = c("acq_A", "acq_B", "acq_C"), sep = "[;]") 
 
 # group determinants based on statistical analysis
@@ -1002,13 +1038,19 @@ cipro_res_mech_prop <- cipro_res_mech_prop %>%
   group_res_mech(mut_A) %>%
   group_res_mech(mut_B) %>%
   group_res_mech(mut_C) %>%
+  group_res_mech(mut_D) %>%
+  group_res_mech(mut_E) %>%
+  group_res_mech(mut_F) %>%
+  group_res_mech(mut_G) %>%
+  group_res_mech(mut_H) %>%
+  group_res_mech(mut_I) %>%
   group_res_mech(acq_A) %>%
   group_res_mech(acq_B) %>%
   group_res_mech(acq_C) 
 
 # combine previously separated resistance determinants columns
 cipro_res_mech_prop <- cipro_res_mech_prop %>%
-  unite("Flq_mutations", mut_A, mut_B, mut_C, sep = ";", na.rm = TRUE) %>%
+  unite("Flq_mutations", mut_A, mut_B, mut_C, mut_D, mut_E, mut_F, mut_G, mut_H, mut_I, sep = ";", na.rm = TRUE) %>%
   unite("Flq_acquired", acq_A, acq_B, acq_C, sep = ";", na.rm = TRUE) 
 
 # combine all the resistance determinants columns using a ";" excluding rows without
@@ -1046,7 +1088,7 @@ DT::datatable(st_res_mech_prop,
 ```
 
 ###### Heatmap of different combinations per ST
-```{r fig.width=11, fig.height=9}
+```{r fig.width=14, fig.height=10}
 # create heatmap/upset plot of different combinations per ST
 st_res_mech_prop %>%
   filter(ST %in% st_res_mech$ST[st_res_mech$prop>0.1 & st_res_mech$N>50]) %>%
@@ -1112,7 +1154,7 @@ DT::datatable(st_sus_res_mech,
               options = list(paging=TRUE, fixedHeader=TRUE, scrollX=TRUE))
 ```
 
-#### Bar plot
+#### Summary bar plot
 ```{r}
 st_sus_res_mech %>%
   filter(n > 1) %>%
@@ -1165,7 +1207,6 @@ sus_res_mech %>%
 ```
 
 ```{r proportion, eval=FALSE, include=FALSE}
-# Statistical analysis
 # proportion test
 
 # calculate frequencies of different resistance mechanisms for the different phenotypes
@@ -1269,14 +1310,23 @@ view(acquired_genes_freq_prop)
 ```
 
 # Appendix
+## Functions
 ```{r get-labels, echo = FALSE}
 labs = knitr::all_labels()
-labs = labs[labs %in% c("functions", "proportion")]
+labs = labs[labs %in% "functions"]
 ```
 ```{r all-code, ref.label=labs, eval=FALSE}
 ```
 
+## Statistical analysis
+```{r get-labels-2, echo = FALSE}
+labs = knitr::all_labels()
+labs = labs[labs %in% "proportion"]
+```
+```{r all-code-2, ref.label=labs, eval=FALSE}
+```
+
 # Session information
-```{r}
+```{r session-info}
 sessionInfo()
 ```
