@@ -409,7 +409,7 @@ cipro_res_no_mut <- cipro_res_mech %>%
 
 # Extraction of *gyrA* and *parC* gene sequences
 ## BLAST analysis of the genomes
-Assembled *K. pneumoniae* genomes of the 26 datasets used in the analysis were retrieved from Massive M3 using the **copy_fasta.sh** job script. GyrA and ParC reference amino acid sequences were then retrieved from the Kleborate GitHub repo (https://github.com/katholt/Kleborate/blob/master/kleborate/resBLAST.py). TBLASTN was used to find nucleotide sequences of those amino acid sequences - GenBank accession number **AJ292307.1** for *gyrA* and **MZ242286.1** for *parC* - and the Translate tool on Expasy (https://web.expasy.org/translate/) was afterwards used to trim the nucleotide sequences so that the amino acid sequences produced matched those from Kleborate.
+Assembled *K. pneumoniae* genomes of the 26 datasets used in the analysis were retrieved from Massive M3 using the **copy_fasta.sh** job script. GyrA and ParC reference amino acid sequences were then retrieved from the resBLAST python script on the Kleborate GitHub repo (https://github.com/katholt/Kleborate/blob/master/kleborate/resBLAST.py). TBLASTN was used to find nucleotide sequences of those amino acid sequences - GenBank accession number **AJ292307.1** for *gyrA* and **MZ242286.1** for *parC* - and the Translate tool on Expasy (https://web.expasy.org/translate/) was afterwards used to trim the nucleotide sequences so that the amino acid sequences produced matched those from Kleborate.
 
 The *gyrA* and *parC* reference nucleotide sequences were then combined into one FASTA file which was used as the query for BLASTN while the subjects were the genomes from the various datasets. This was run using **cipro_blast.sh** on Massive. The output contained all the blast hits for the two genes. To obtain the unique blast hits, **cipro_blast_unique_hits.sh** was run. All the unique hits from the different datasets were combined into one dataframe and a metadata file was used to convert run accession IDs into strain IDs. Thereafter, the unique hits dataframe was combined with the genomes + matched antibiogram dataframe (cipro_antibiogram) and this was used to filter out extracted *gyrA* and *parC* sequences in the next step. 
 
@@ -477,15 +477,45 @@ cipro_antibiogram_uniquehits <- cipro_antibiogram_uniquehits %>%
 ## Extraction of *gyrA* and *parC* nucleotide sequences
 *gyrA* and *parC* gene sequences were then extracted using **extract_blast_gyra.sh** and **extract_blast_parc.sh** job scripts respectively using the default cut-off for length (50%). Various identity cut-offs were used to extract *gyrA* and *parC* nucleotide sequences for all the genomes with matched antibiogram data and **filter_gyrA_parC.py** was used to check whether the gene sequences were extracted for all genomes, by running **filter_gyrA_parC.sh** on Massive, after manually editing the resulting fasta file headers as follows: .fasta contig -> .fasta_contig e.g. .fasta 6 -> .fasta_6. A cut-off of 95% was first used followed by a cut-off of 90% was used and finally an identity cut-off of 80%. The headers for the filtered fasta file **filtered_gyrA_parC.fasta** were renamed in the following pattern: genome ID_gene name_contig number. The *gyrA* sequence of **KP_NORM_BLD_2011_75132** was added manually (after querying the genome against the reference using BLASTN) as it was not picked up by the **extract_blast_gyra.sh** job script.
 
-Gaps were then removed from **filtered_gyrA_parC.fasta** using `seqkit seq -g filtered_gyrA_parC.fasta > filtered_gyrA_parC_nogaps.fasta` and the presence of any duplicated IDs was checked using `seqkit rmdup -n < filtered_gyrA_parC_nogaps.fasta > filtered_gyrA_parC_nogaps_NR.fasta -D filtered_gyrA_parC_nogaps_NR_duplicate_info.txt -d filtered_gyrA_parC_nogaps_NR_duplicate_seqs.fasta`. *gyrA* and *parC* gene sequences were then separated using `seqkit grep -r -p gyrA filtered_gyrA_parC_nogaps_NR.fasta -o filtered_gyrA.fasta` and `seqkit grep -r -p parC filtered_gyrA_parC_nogaps_NR.fasta -o filtered_parC.fasta` respectively to obtain **filtered_gyrA.fasta** and **filtered_parC.fasta** as output files. 
+Using seqkit, gaps and duplicated sequences were removed from **filtered_gyrA_parC.fasta** and thereafter, *gyrA* and *parC* gene sequences were separated to obtain **filtered_gyrA.fasta** and **filtered_parC.fasta** as output files:
+
+```{bash eval=FALSE}
+# remove gaps
+seqkit seq -g filtered_gyrA_parC.fasta > filtered_gyrA_parC_nogaps.fasta
+
+# check for duplicated sequences
+seqkit rmdup -n < filtered_gyrA_parC_nogaps.fasta > filtered_gyrA_parC_nogaps_NR.fasta -D filtered_gyrA_parC_nogaps_NR_duplicate_info.txt 
+-d filtered_gyrA_parC_nogaps_NR_duplicate_seqs.fasta
+
+# separate gyrA and parC gene sequences
+seqkit grep -r -p gyrA filtered_gyrA_parC_nogaps_NR.fasta -o filtered_gyrA.fasta
+seqkit grep -r -p parC filtered_gyrA_parC_nogaps_NR.fasta -o filtered_parC.fasta
+```
 
 ## Translation of nucleotide sequences
-Prodigal was run to translate the *gyrA* and *parC* nucleotide sequences into amino acid sequences using the following commands respectively: `prodigal -i filtered_gyrA.fasta -o filtered_gyrA_gene.coords.gbk -a filtered_gyrA_aa.faa` and `prodigal -i filtered_parC.fasta -o filtered_parC_gene.coords.gbk -a filtered_parC_aa.faa`.
+Prodigal was run to translate the *gyrA* and *parC* nucleotide sequences into amino acid sequences:
+
+```{bash eval=FALSE}
+prodigal -i filtered_gyrA.fasta -o filtered_gyrA_gene.coords.gbk -a filtered_gyrA_aa.faa
+prodigal -i filtered_parC.fasta -o filtered_parC_gene.coords.gbk -a filtered_parC_aa.faa
+```
 
 After running Prodigal, BLASTP was run on Massive using **blast_gyra.sh** and **blast_parc.sh** whereby **filtered_gyrA_aa.faa** and **filtered_parC_aa.faa** were queried against **gyra_ref_aa_seq.faa** and **parc_ref_aa_seq.faa** to get blast outputs with the best hits, **gyrA_blast.tsv** and **parC_blast.tsv**. The amino acid sequences of the best hits were extracted using **extract_gyra_blast.py** and **extract_parc_blast.py** and saved as **gyra_blast.faa** and **parc_blast.faa** respectively. The GyrA amino acid sequence of **KP_NORM_BLD_2011_75132** was added manually to the **gyra_blast.faa** file by first translating the nucleotide sequence using the Translate tool on Expasy - 3'5' frame 1 was chosen. 
 
 ## Alignment to GyrA and ParC reference sequences
-Alignment of the genomes to the GyrA and ParC reference sequences was done to check whether the sample genome had mutations in those proteins. **parc_blast.faa** and **gyra_blast.faa** were first aligned to the reference sequences using mafft and the reference sequences were removed from the resulting alignment files: `mafft parc_blast.faa > parc_blast_align.faa` and `mafft gyra_blast.faa > gyra_blast_align.faa` to first align the sequences then `mafft --addfull parc_ref_aa_seq.faa parc_blast_align.faa > parc_blast_align_with_ref.faa` and `mafft --addfull gyra_ref_aa_seq.faa gyra_blast_align.faa > gyra_blast_align_with_ref.faa` to align them to the reference. Afterwards, strains with WT GyrA/ParC, those with mutations in the proteins and with truncated amino acid sequences were summarised using **gyrA_mismatch_pos.py** and **parC_mismatch_pos.py**. The mutations, obtained from **gyrA_mutations.csv** and **parC_mutations.csv**, were then compared to the Kleborate output and mutations not in Kleborate but fall within the quinolone resistance-determining region (QRDR) i.e. position 67-106 for GyrA and 63-102 for ParC were saved in **mutations_not_in_kleborate.tsv**. Mutations different from those picked up by Kleborate were marked with a double asterisk (**).
+Alignment of the genomes to the GyrA and ParC reference sequences was done to check whether the sample genome had mutations in those proteins. **parc_blast.faa** and **gyra_blast.faa** were first aligned to the reference sequences using mafft and the reference sequences were removed from the resulting alignment files: 
+
+```{bash eval=FALSE}
+# align gene sequences
+mafft parc_blast.faa > parc_blast_align.faa
+mafft gyra_blast.faa > gyra_blast_align.faa
+
+# align sequences to the references
+mafft --addfull parc_ref_aa_seq.faa parc_blast_align.faa > parc_blast_align_with_ref.faa
+mafft --addfull gyra_ref_aa_seq.faa gyra_blast_align.faa > gyra_blast_align_with_ref.faa
+```
+
+Afterwards, strains with WT GyrA/ParC, those with mutations in the proteins and with truncated amino acid sequences were summarised using **gyrA_mismatch_pos.py** and **parC_mismatch_pos.py**. The mutations, obtained from **gyrA_mutations.csv** and **parC_mutations.csv**, were then compared to the Kleborate output and mutations not in Kleborate but fall within the quinolone resistance-determining region (QRDR) i.e. position 67-106 for GyrA and 63-102 for ParC were saved in **mutations_not_in_kleborate.tsv**. Mutations different from those picked up by Kleborate were marked with a double asterisk (**).
 
 ```{r results='hide'}
 # read GyrA mutations file
