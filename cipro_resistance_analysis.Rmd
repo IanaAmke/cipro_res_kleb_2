@@ -30,8 +30,6 @@ knitr::opts_chunk$set(dev = 'png', echo = TRUE, message = FALSE, warning = FALSE
 ```
 
 ```{r functions, include=FALSE}
-# upset_violin_plot to create violin + UpSet plots for AST measurements and fluoroquinolone resistance mechanisms
-
 # create violin + UpSet plots for AST measurements and fluoroquinolone resistance mechanisms
 upset_violin_plot <- function(df, x, y, z) {
 # df - dataframe; x - Flq resistance mechanism column; y - Laboratory typing method column
@@ -111,8 +109,6 @@ upset_violin_plot <- function(df, x, y, z) {
   }
 }
 
-# upset_bar_plot to create percent stacked bar charts + UpSet plots for AST measurements and fluoroquinolone resistance mechanisms
-
 # create percent stacked barchart + UpSet plots for AST measurements and fluoroquinolone resistance mechanisms
 upset_bar_plot <- function(df, x) {
 # df - dataframe; x - Flq resistance mechanism column
@@ -130,9 +126,7 @@ upset_bar_plot <- function(df, x) {
     theme_combmatrix(combmatrix.panel.line.size = 0.8)
 }
 
-# group_res_mech to group resistance determinants
-
-# function to group some resistance determinants
+# group fluoroquinolone resistance determinants
 group_res_mech <- function(df, x) {
 # df - data frame; x - column(s) with resistance determinanats
 # {{ }} and := allows one to pass a column name as a function parameter
